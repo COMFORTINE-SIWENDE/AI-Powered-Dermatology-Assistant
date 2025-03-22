@@ -16,9 +16,9 @@ This is an Agentic AI application that uses a CNN model for skin disease classif
 #### Connecting Azure ML Studio with Vs Code
 ![Connecting](ai-hack-img/azure-vs-code-model-training.png)
 #### Saving the generalized CNN Model
-![.](ai-hack-img/how to get the model.png)
+![.](ai-hack-img/how-to-get-the-model.png)
 #### Skin Disease Classification Model Summary
-![Summary:](ai-hack-img/model summary.png)
+![Summary:](ai-hack-img/model-summary.png)
 
 ## 2.Setting Development Environment
 ## 3.Autonomous Chatbot AI Agent
