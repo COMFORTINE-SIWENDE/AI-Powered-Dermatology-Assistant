@@ -12,6 +12,14 @@ This is an Agentic AI application that uses a CNN model for skin disease classif
 -ReactJs
 -MariaDB
 ## 1.Training Convolution Neural Network with Azure ML Compute
+![Azure ML Studio:](ai-hack-img/Azure-machine-learning-studio.png)
+#### Connecting Azure ML Studio with Vs Code
+![Connecting](ai-hack-img/azure-vs-code-model-training.png)
+#### Saving the generalized CNN Model
+![.](ai-hack-img/how to get the model.png)
+#### Skin Disease Classification Model Summary
+![Summary:](ai-hack-img/model summary.png)
+
 ## 2.Setting Development Environment
 ## 3.Autonomous Chatbot AI Agent
 #### Integrating AzureOpenAI,Azure AI Search to Iteract with the Skin Disease Classification Model and the System.
