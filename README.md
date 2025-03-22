@@ -16,17 +16,26 @@ python -m venv venv
 venv\Scripts\activate
 pip install -r requirements.txt
 ```
-
+- Run the Django api endpoints
+```bash
+cd endpoints
+python manage.py runserver
+```
+- Run React App
+```bash
+cd client
+npm run dev
+```
 # Project Workflow
 ### Project Tools,Frameworks and Libraries
--Azure Machine Learning Compute
--Azure AI Search
--Azure OpenAI(GPT-4 model)
--Langchain
--Tensorflow
--Django REST 
--ReactJs
--MariaDB
+- Azure Machine Learning Compute
+- Azure AI Search
+- Azure OpenAI(GPT-4 model)
+- Langchain
+- Tensorflow
+- Django REST 
+- ReactJs
+- MariaDB
 ## 1.Training Convolution Neural Network with Azure ML Compute
 ![Azure ML Studio:](ai-hack-img/Azure-machine-learning-studio.png)
 #### Connecting Azure ML Studio with Vs Code
