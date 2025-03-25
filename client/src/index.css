@@ -1,1 +1,12 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Tektur:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Tektur:wght@400..900&display=swap');
 @import "tailwindcss";
+
+
+:root {
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+@theme {
+    --font-lite: 'Tektur';
+}

@@ -1,6 +1,5 @@
-from io import BytesIO
 from PIL import Image
-from django.core.files.uploadedfile import InMemoryUploadedFile
+
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -18,13 +17,10 @@ import numpy as np
 import tensorflow as tf
 from rest_framework.views import APIView
 import os
-import io
 import uuid
 from django.conf import settings
-# from django.core.files.uploadedfile import InMemoryUploadedFile
 
 from langchain.chains import ConversationChain
-# from langchain.agents import AgentExecutor,create_openapi_agent
 from langchain.memory import ConversationBufferMemory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory,BaseChatMessageHistory
@@ -35,6 +31,9 @@ api_key = settings.AZURE_OPENAI_API_KEY
 api_endpoint = settings.AZURE_OPENAI_API_ENDPOINT
 azure_search_api=settings.AZURE_AI_SEARCH_API
 azure_search_endpoint = settings.AZURE_AI_SEARCH_ENDPOINT
+
+from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
 
 
 llm = AzureChatOpenAI(
@@ -91,8 +90,8 @@ model_path = os.path.abspath(
     "/home/comphortine/Comphortine/Dermatology Assistant/endpoints/Skin_Disease_Classification.keras"
 )
 model = tf.keras.models.load_model(model_path)
-print(model.summary())
-print(f"Model file path: {os.path.abspath('model.h5')}")
+# print(model.summary())
+# print(f"Model file path: {os.path.abspath('model.h5')}")
 
 # Disease categories
 data_cat = [
@@ -123,7 +122,8 @@ def generate_chatbot_response(predicted_disease, confidence_score, symptoms, ses
         config={"configurable": {"session_id": session_id}},
     )
     return response['response']
-
+# from channels.db import database_sync_to_async
+# @database_sync_to_async
 def save_prediction(user_name, image, symptoms, predicted_disease, confidence_score, chatbot_response):
     # Save the prediction to the database
     prediction = SkinDiseasePrediction.objects.create(
@@ -151,13 +151,20 @@ class SkinDiseasePredictionView(APIView):
 
         try:
             # Step 1: Predict the disease
-            predicted_disease, confidence_score = predict_disease(image)
+            predicted_disease, confidence_score =predict_disease(image)
 
             # Step 2: Generate chatbot response
             chatbot_response = generate_chatbot_response(predicted_disease, confidence_score, symptoms, session_id)
 
             # Step 3: Save the prediction
-            prediction = save_prediction(user_name, image, symptoms, predicted_disease, confidence_score, chatbot_response)
+            prediction = SkinDiseasePrediction.objects.create(
+                user_name=user_name,
+                image=image,
+                symptoms=symptoms,
+                predicted_disease=predicted_disease,
+                confidence_score=confidence_score,
+                chatbot_response=chatbot_response,
+            )
 
             # Serialize the response
             serializer = SkinDiseasePredictionSerializer(prediction)
@@ -192,6 +199,14 @@ def handle_database_query(query):
         return f"Here are some dermatologists:\n{dermatologist_info}"
     else:
         return "No dermatologists found."
+search_client = SearchClient(
+    endpoint=azure_search_endpoint,
+    index_name="medical-knowledge",
+    credential=AzureKeyCredential('azure_search_api'),
+)
+def retrieve_medical_info(query):
+    results = search_client.search(search_text=query)
+    return [result["content"] for result in results]
     
 def handle_rag_retriever(query):
     medical_info = retrieve_medical_info(query)
@@ -199,16 +214,8 @@ def handle_rag_retriever(query):
         return f"Here is some medical information:\n" + "\n".join(medical_info)
     else:
         return "No relevant medical information found."
-    
-def route_input(user_input, image=None):
-    if image:
-        return "cnn_model"
-    elif "treatment" in user_input.lower():
-        return "rag_retriever"
-    elif "dermatologist" in user_input.lower():
-        return "database_query"
-    else:
-        return "llm_chat"
+    # *********
+
 
 def handle_input(user_input, image=None, session_id=None):
     task = route_input(user_input, image)
@@ -233,10 +240,25 @@ def handle_input(user_input, image=None, session_id=None):
 
     return chatbot_response
 
+def process_user_query(user_message, session_id):
+    response = conversation_handler.invoke(
+        {"input": user_message},
+        config={"configurable": {"session_id": session_id}},
+    )
+    return response['response']
+def screen_content(user_message):
+    # Add actual content moderation logic here
+    return True
+
+def handle_user_query(user_message, session_id):
+    response = process_user_query(user_message, session_id)
+    is_appropriate = screen_content(user_message)
+    return response if is_appropriate else "Content blocked"
+
 class ChatbotView(APIView):
     def post(self, request, *args, **kwargs):
         user_message = request.data.get('message')
-        user_id = request.data.get('user_id', str(uuid.uuid4()))  # Generate a new user_id if not provided
+        user_id = request.data.get('user_id', str(uuid.uuid4()))
         image = request.FILES.get('image')
 
         if not user_message and not image:
@@ -246,106 +268,18 @@ class ChatbotView(APIView):
             )
 
         try:
-            # Handle the input using the routing logic
             chatbot_response = handle_input(user_message, image, user_id)
-
-            # Save the conversation
             chat = ChatHistory.objects.create(
                 user_id=user_id,
                 user_message=user_message,
                 chatbot_response=chatbot_response,
             )
-
-            # Serialize the response
-            serializer = ChatHistorySerializer(chat)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+            return Response(ChatHistorySerializer(chat).data, status=200)
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
            
-# parallelization
-import asyncio
-
-async def process_user_query(user_message, session_id):
-    # Generate a response using LangChain
-    response = conversation_handler.invoke(
-        {"input": user_message},
-        config={"configurable": {"session_id": session_id}},
-    )
-    return response['response']
-
-async def screen_content(user_message):
-    # Screen for inappropriate content (e.g., using Azure Content Moderator)
-    is_appropriate = True  # Replace with actual content moderation logic
-    return is_appropriate
-
-async def handle_user_query(user_message, session_id):
-    # Run tasks in parallel
-    response_task = asyncio.create_task(process_user_query(user_message, session_id))
-    moderation_task = asyncio.create_task(screen_content(user_message))
-
-    # Wait for both tasks to complete
-    response, is_appropriate = await asyncio.gather(response_task, moderation_task)
-
-    if not is_appropriate:
-        return "Your query contains inappropriate content."
-    return response
-
-class ChatbotView(APIView):
-    async def post(self, request, *args, **kwargs):
-        user_message = request.data.get('message')
-        user_id = request.data.get('user_id', str(uuid.uuid4()))
-
-        if not user_message:
-            return Response(
-                {"error": "Message is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        try:
-            # Handle the query asynchronously
-            chatbot_response = await handle_user_query(user_message, user_id)
-
-            # Save the conversation
-            chat = ChatHistory.objects.create(
-                user_id=user_id,
-                user_message=user_message,
-                chatbot_response=chatbot_response,
-            )
-
-            # Serialize the response
-            serializer = ChatHistorySerializer(chat)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
-        except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
+# parallelization    
 # Retrieval-Augment-Generation
-from azure.search.documents import SearchClient
-from azure.core.credentials import AzureKeyCredential
+
 
 # Initialize Azure Cognitive Search client
-search_client = SearchClient(
-    endpoint=azure_search_endpoint,
-    index_name="medical-knowledge",
-    credential=AzureKeyCredential('azure_search_api'),
-)
-def retrieve_medical_info(query):
-    # Retrieve relevant documents
-    results = search_client.search(search_text=query)
-    return [result["content"] for result in results]
-
-def retrieve_medical_info(query):
-    # Retrieve relevant documents
-    results = search_client.search(search_text=query)
-    return results
-
-def generate_response_with_rag(query, session_id):
-    # Retrieve medical info
-    medical_info = retrieve_medical_info(query)
-    # Generate response using LLM
-    response = conversation_handler.invoke(
-        {"input": f"User query: {query}. Medical info: {medical_info}"},
-        config={"configurable": {"session_id": session_id}},
-    )
-    return response['response']

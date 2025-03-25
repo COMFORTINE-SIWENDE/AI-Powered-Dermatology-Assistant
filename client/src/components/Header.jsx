@@ -11,7 +11,7 @@ export default function Header() {
 
         <div>
           <span
-            className={`text-[20px] font-extrabold bg-gradient-to-r from-[hsl(240,100%,50%)] via-[hsl(120,100%,42%)] to-[hsl(240,100%,50%)] w-max text-transparent bg-clip-text`}
+            className={`text-[20px] font-lite font-extrabold bg-gradient-to-r from-[hsl(240,100%,50%)] via-[hsl(120,100%,42%)] to-[hsl(240,100%,50%)] w-max text-transparent bg-clip-text`}
           >
             AI Hack With Microsoft AZure and Fabrics
           </span>
@@ -27,7 +27,7 @@ export default function Header() {
           <div
             className={`h-12 w-12 rounded-full bg-blue-600 overflow-hidden flex justify-center items-center`}
           >
-            <span className="font-extrabold text-white">SP</span>
+            <span className="font-extrabold text-white">WU</span>
           </div>
         </div>
       </div>
