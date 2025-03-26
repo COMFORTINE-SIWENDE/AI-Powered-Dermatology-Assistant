@@ -46,7 +46,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
 
   return (
     <div className="flex flex-col h-full relative bg-gray-100 rounded-xl shadow-md overflow-hidden p-4 border border-green-500">
-      <div className="w-full h-full absolute inset-0">
+      <div className="absolute inset-0">
         <img className="h-full w-full" src={chat} />
       </div>
       <div className="absolute bg-black/70 z-10 inset-0" />

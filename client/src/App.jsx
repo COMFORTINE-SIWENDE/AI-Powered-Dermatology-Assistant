@@ -24,8 +24,8 @@ export default function App() {
   return (
     <>
       <Header />
-      <div className={`mt-[4.5em] h-[41.25rem] overflow-hidden`}>
-        <div className="container w-[80%] mx-auto grid h-full grid-cols-[2fr_1fr] gap-6 mt-[15px]">
+      <div className={`pt-20 h-screen overflow-hidden`}>
+        <div className="container w-[80%] mx-auto grid h-full grid-cols-[2fr_1fr] gap-6">
           <DiagnosisForm onDiagnosis={handleDiagnosis} sessionId={sessionId} />
           <Chatbot diagnosis={diagnosis} sessionId={sessionId} />
         </div>

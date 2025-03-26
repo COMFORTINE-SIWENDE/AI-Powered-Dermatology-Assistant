@@ -64,11 +64,10 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
   };
   const [showD, setshowD] = useState(false);
   return (
-    <div className="bg-gradient-to-t from-blue-400 via-white to-blue-500 rounded-xl">      
-   <div className="bg-transparent shadow rounded-lg grid grid-cols-2 h-[40rem] overflow-hidden">
-      {/* left */}
-      <div className="pt-10 px-5">
-        <div>
+    <div className="bg-gradient-to-t from-blue-400 h-full via-white to-blue-500 bg-transparent rounded-lg grid grid-cols-2 overflow-hidden">
+      {/* Left */}
+      <div className="px-5 h-full flex justify-center items-center flex-col gap-5">
+        <div className="-mt-10">
           <p className="font-lite font-bold text-white text-xl text-center">
             Welcome to the Microsoft Hackathon - Innovating with Azure AI &
             Microsoft Fabric
@@ -83,7 +82,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           </p>
         </div>
 
-        <div className="flex gap-5 items-center justify-center mt-10">
+        <div className="flex gap-5 items-center justify-center mt-10 ">
           <div>
             <img className="size-30" src={azure} alt="" />
           </div>
@@ -95,34 +94,34 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           </div>
         </div>
       </div>
-      {/* right */}
-        <div className="bg-gradient-to-br from-green-500 via-blue-600 to-red-600 p-1 relative rounded-xl">
-          <div className="absolute inset-[3px] bg-gradient-to-t from-blue-400 via-white to-blue-500 rounded-xl"/>
-          
-           <div className="grid grid-rows-[2fr_1.5fr] h-[0px]">
-
-        <div className="relative " >
+      {/* Right */}
+      <div className="grid grid-rows-2 overflow-hidden rounded-xl ring-1 ring-green-400">
+        {/* <div className="absolute inset-[3px] m-auto bg-gradient-to-t from-blue-400 via-white to-blue-500 rounded-xl -z-10" /> */}
+        <div className="z-10 h-full relative ">
           <span
             onClick={() => setshowD((prev) => !prev)}
             className="absolute inset-x-0 top-0 mx-auto px-2 py-1 z-10 bg-blue-600 w-max rounded-b-md cursor-pointer hover:bg-blue-400 active:bg-blue-300 text-sm font-semibold text-white transition-colors duration-300"
           >
             {showD ? "Hide Image" : "Show Image"}
           </span>
-          <div className={`absolute inset-0 ${showD ? "" : "bg-black/80 rounded-t-xl"}`} />
-          <img src={imageURL || BGlogo} className="h-[300px] w-full object-fit object-center rounded-xl" />
+          <div
+            className={`absolute inset-0 ${
+              showD ? "" : "bg-black/80 rounded-tr-xl"
+            }`}
+          />
+          <img
+            src={imageURL || BGlogo}
+            className="h-full w-full object-fit object-center rounded-tr-xl"
+          />
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          className="relative w-[98%] mx-auto mt-1"
-        >
-
-            <div className="">
-              
-                <div className="mt-0 flex flex-col justify-center items-center transition-colors duration-300 ">
-            <span className="text-xl text-[#000300] font-lite font-bold">Upload image</span>
+        <form onSubmit={handleSubmit} className="relative h-full w-full p-2">
+          <div className="flex flex-col justify-center items-center transition-colors duration-300 ">
+            <span className="text-xl text-[#000300] font-lite font-bold">
+              Upload image
+            </span>
             <label
-              className="h-[40px] w-[100px] flex justify-center items-center cursor-pointer rounded-md bg-blue-400 hover:bg-blue-300 active:bg-blue-200 "
+              className="h-[40px] w-[100px] flex justify-center items-center cursor-pointer rounded-md bg-blue-400 hover:bg-blue-300 active:bg-blue-200"
               htmlFor="fileUpload"
             >
               <img width={30} height={30} src={Upload} />
@@ -134,9 +133,8 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
               onChange={(e) => setImage(e.target.files[0])}
               className="invisible size-0"
             />
-          </div> 
+          </div>
 
-          
           <div className="flex items-center justify-between flex-col ">
             <label className="block text-[#000300] font-lite text-xl font-bold bg-gradient-to-r from-gray-700 to-green-900  w-max bg-clip-text">
               Describe your symptoms
@@ -158,16 +156,9 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
               Diagnose your status
             </button>
           </div>
-         </div>
-    
         </form>
-
-      </div>
-
       </div>
     </div>
-
- </div>
   );
 };
 
