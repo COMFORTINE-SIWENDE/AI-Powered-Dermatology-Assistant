@@ -67,15 +67,15 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
     <div className="bg-gradient-to-t from-blue-400 h-full via-white to-blue-500 bg-transparent rounded-lg grid grid-cols-2 overflow-hidden">
       {/* Left */}
       <div className="px-5 h-full flex justify-center items-center flex-col gap-5">
-        <div className="-mt-10">
-          <p className="font-lite font-bold text-white text-xl text-center">
+        <div className="-mt-10 flex space-y-5 flex-col">
+          <p className="font-lite font-bold text-black text-2xl text-center">
             Welcome to the Microsoft Hackathon - Innovating with Azure AI &
             Microsoft Fabric
           </p>
 
-          <h1 className="font-bold font-lite text-lg  mt-1 text-center bg-gradient-to-r from-[#0355ba] via-[#909004] to-black w-max text-transparent bg-clip-text text-[25px]">
+          <div className="font-bold font-lite text-xl  mt-1 text-center bg-gradient-to-r from-[#0355ba] via-[#909004] to-black w-max text-transparent bg-clip-text text-[25px]">
             <TypingEffect text="Hack with us:" />
-          </h1>
+          </div>
           <p className="tracking-tight leading-5">
             Join us in leveraging cutting-edge AI and data fabric solutions to
             build transformative applications. Let’s innovate together!
@@ -115,7 +115,10 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           />
         </div>
 
-        <form onSubmit={handleSubmit} className="relative h-full w-full p-2">
+        <form
+          onSubmit={handleSubmit}
+          className="relative h-full w-full p-2 flex flex-col justify-evenly"
+        >
           <div className="flex flex-col justify-center items-center transition-colors duration-300 ">
             <span className="text-xl text-[#000300] font-lite font-bold">
               Upload image
@@ -142,7 +145,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
             <textarea
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
-              rows="7"
+              rows="10"
               placeholder="Tell more about your condition..."
               className="m-1 block w-[90%] p-2 rounded-md bg-blue-200 shadow-sm outline-0 focus:ring-2 focus:ring-blue-500 sm:text-sm"
             />

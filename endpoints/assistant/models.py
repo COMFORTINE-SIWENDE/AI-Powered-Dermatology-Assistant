@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,Group,Permission
+import uuid
 
 # 1. Users Table
 class User(AbstractUser):
@@ -84,6 +85,11 @@ class UserDiseaseHistory(models.Model):
 
     def __str__(self):
         return f"{self.user.full_name} - {self.disease.disease_name}"
+class ConversationSession(models.Model):
+    session_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    predicted_disease = models.CharField(max_length=100, null=True)
+    confidence_score = models.FloatField(null=True)
 
 class SkinDiseasePrediction(models.Model):
     user_name = models.CharField(max_length=100,null=True)
@@ -93,15 +99,17 @@ class SkinDiseasePrediction(models.Model):
     confidence_score = models.FloatField()
     created_at = models.DateTimeField(auto_now_add=True)
     chatbot_response = models.TextField(null=True, blank=True)
+    session = models.ForeignKey(ConversationSession, on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return f"{self.user_name} - {self.predicted_disease}"
 
 class ChatHistory(models.Model):
-    user_id = models.CharField(max_length=100, blank=True, null=True)  # Optional: Identify the user
+    user_id = models.CharField(max_length=100, blank=True, null=True)
     user_message = models.TextField()
     chatbot_response = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    session = models.ForeignKey(ConversationSession, on_delete=models.CASCADE,null=True,blank=True)
 
     def __str__(self):
         return f"Chat {self.id}"

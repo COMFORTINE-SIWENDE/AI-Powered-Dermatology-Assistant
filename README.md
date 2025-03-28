@@ -29,6 +29,11 @@ pip install -r requirements.txt
 ```
 
 - Run the Django api endpoints
+- create migrations
+
+```bash
+python manage.py makemigrations
+```
 
 ```bash
 cd endpoints
