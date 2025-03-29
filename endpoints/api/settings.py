@@ -99,7 +99,7 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'dermatology',
+        'NAME': 'medical',
         'USER': 'root',
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',

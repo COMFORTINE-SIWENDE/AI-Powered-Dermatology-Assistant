@@ -1,4 +1,5 @@
 from PIL import Image
+from rest_framework.parsers import JSONParser,MultiPartParser
 
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
@@ -12,7 +13,7 @@ from .serializers import (
     ChatHistorySerializer,
 )
 from django.db.models import Q
-from .models import User, SkinDiseasePrediction, ChatHistory,Dermatologist
+from .models import User, SkinDiseasePrediction, ChatHistory,Dermatologist,ConversationSession
 import numpy as np
 import tensorflow as tf
 from rest_framework.views import APIView
@@ -25,6 +26,8 @@ from langchain.memory import ConversationBufferMemory
 from langchain_core.chat_history import InMemoryChatMessageHistory
 from langchain_core.runnables.history import RunnableWithMessageHistory,BaseChatMessageHistory
 from langchain_openai import AzureChatOpenAI
+from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import SystemMessage
 
 # # Configure Azure OpenAI
 api_key = settings.AZURE_OPENAI_API_KEY
@@ -99,187 +102,392 @@ data_cat = [
     'eczema', 'folliculitis', 'hives', 'impetigo', 'melanoma', 'psoriasis',
     'ringworm', 'rosacea', 'shingles', 'uticaria', 'vitiligo', 'warts'
 ]
+
+
+
 # Autonomous ChatBot AI Agent
 # Prompt chaining
-def predict_disease(image):
-    # Preprocess the image and predict the disease
-    img_width, img_height = 180, 180
-    pil_image = Image.open(image).convert("RGB")
-    pil_image = pil_image.resize((img_width, img_height))
-    image_arr = tf.keras.utils.array_to_img(pil_image)
-    image_bat = tf.expand_dims(image_arr, axis=0)
-    predict = model.predict(image_bat)
-    score = tf.nn.softmax(predict)
-    predicted_disease = data_cat[np.argmax(score)]
-    confidence_score = float(np.max(score) * 100)
-    return predicted_disease, confidence_score
-
-def generate_chatbot_response(predicted_disease, confidence_score, symptoms, session_id):
-    # Generate a chatbot response using LangChain
-    prompt = f"I have {predicted_disease} with {confidence_score:.2f}% confidence. My symptoms are: {symptoms}. What should I do?"
-    response = conversation_handler.invoke(
-        {"input": prompt},
-        config={"configurable": {"session_id": session_id}},
-    )
-    return response['response']
-# from channels.db import database_sync_to_async
-# @database_sync_to_async
-def save_prediction(user_name, image, symptoms, predicted_disease, confidence_score, chatbot_response):
-    # Save the prediction to the database
-    prediction = SkinDiseasePrediction.objects.create(
-        user_name=user_name,
-        image=image,
-        symptoms=symptoms,
-        predicted_disease=predicted_disease,
-        confidence_score=confidence_score,
-        chatbot_response=chatbot_response,
-    )
-    return prediction
-
-class SkinDiseasePredictionView(APIView):
+class MedicalAssistantAPI(APIView):
+    """
+    Unified endpoint that handles both image-based diagnosis and text-based conversations
+    with persistent chat history and intelligent routing.
+    """
+    
+    # System prompt for the AI assistant
+    SYSTEM_PROMPT = """You are DermatologyAI, an advanced medical assistant specialized in skin conditions. 
+    You provide:
+    1. Professional diagnosis support based on image analysis
+    2. Treatment recommendations from verified medical sources
+    3. Dermatologist referrals when needed
+    4. General skin care advice
+    
+    Always:
+    - Be empathetic and professional
+    - Clarify when you're not certain
+    - Recommend professional consultation for serious conditions
+    - Maintain conversation context
+    """
+    
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        # Initialize Azure Cognitive Search client
+        self.search_client = SearchClient(
+            endpoint=azure_search_endpoint,
+            index_name="medical-knowledge",
+            credential=AzureKeyCredential('azure_search_api'),
+        )
+        
+        # Enhanced conversation chain with system prompt
+        self.prompt = ChatPromptTemplate.from_messages([
+            ("system", self.SYSTEM_PROMPT),
+            MessagesPlaceholder(variable_name="history"),
+            ("human", "{input}"),
+        ])
+        
+        self.conversation_chain = self.prompt | llm
+        self.conversation_handler = RunnableWithMessageHistory(
+            runnable=self.conversation_chain,
+            get_session_history=get_session_history,
+            input_messages_key="input",
+            history_messages_key="history"
+        )
+    parser_classes = [JSONParser,MultiPartParser]
     def post(self, request, *args, **kwargs):
-        user_name = request.data.get('user_name')
-        image = request.FILES.get('image')
-        symptoms = request.data.get('symptoms')
-        session_id = request.data.get('session_id', str(uuid.uuid4()))  # Generate a new session_id if not provided
+        response_data = {
+            "session_id": None,
+            "diagnosis": None,
+            "chat_response": None,
+            "suggested_actions": []
+        }
+        try:
+            # Extract and validate inputs
+            data = request.data
+            message = data.get('message', '')
+            user_id = request.data.get('user_id', f"anon_{str(uuid.uuid4())[:8]}")
+            session_id = request.data.get('session_id', str(uuid.uuid4()))
+            image = request.FILES.get('image')
 
-        if not image or not symptoms:
-            return Response(
-                {"error": "Image and symptoms are required."},
-                status=status.HTTP_400_BAD_REQUEST,
+            # Handle session creation/retrieval FIRST
+            try:
+                # Convert session_id to UUID format
+                session_uuid = uuid.UUID(session_id)
+            except ValueError:
+                session_uuid = uuid.uuid4()
+                session_id = str(session_uuid)
+
+            # Get or create session object
+            session, created = ConversationSession.objects.get_or_create(
+                session_id=session_uuid,
+                defaults={'user_id': user_id if not user_id.startswith('anon_') else None}
             )
 
+            response_data["session_id"] = str(session.session_id)
+
+            # Process image if provided
+            if image:
+                try:
+                    predicted_disease, confidence_score = self.predict_disease(image)
+                    analysis = self.generate_chatbot_response(
+                        predicted_disease=predicted_disease,
+                        confidence_score=confidence_score,
+                        symptoms=message,
+                        session_id=str(session.session_id)
+                    )
+
+                    # Create prediction with session object
+                    prediction = SkinDiseasePrediction.objects.create(
+                        user_id=user_id if not user_id.startswith('anon_') else None,
+                        image=image,
+                        symptoms=message,
+                        predicted_disease=predicted_disease,
+                        confidence_score=confidence_score,
+                        chatbot_response=analysis,
+                        session=session  # Use the session object
+                    )
+
+                    response_data["diagnosis"] = SkinDiseasePredictionSerializer(
+                        prediction,
+                        context={'request': request}
+                    ).data
+                    response_data["suggested_actions"] = ["explain_diagnosis", "treatment_options"]
+                    message = f"I was diagnosed with {predicted_disease}. {message}"
+
+                except Exception as e:
+                    return Response(
+                        {"error": f"Image processing failed: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            # Process text message (if any)
+            if message or not image:
+                try:
+                    chat_response = self.handle_text_input(
+                        message=message or "Explain this diagnosis",
+                        session_id=str(session.session_id),
+                        is_followup=bool(image)
+                    )
+
+                    # Create chat history with session object
+                    chat = ChatHistory.objects.create(
+                        user_id=user_id if not user_id.startswith('anon_') else None,
+                        user_message=message,
+                        chatbot_response=chat_response['text'],
+                        session=session,  # Use the session object
+                        metadata={
+                            'sources': chat_response.get('sources'),
+                            'suggested_actions': chat_response.get('suggested_actions')
+                        }
+                    )
+
+                    response_data["chat_response"] = ChatHistorySerializer(
+                        chat,
+                        context={'request': request}
+                    ).data
+                    response_data["suggested_actions"] = chat_response.get('suggested_actions', [])
+
+                except Exception as e:
+                    return Response(
+                        {"error": f"Chat processing failed: {str(e)}"},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+
+            return Response(response_data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response(
+                {"error": f"Server error: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+    def process_image(self, image, symptoms, session_id):
+        """Handle image-based diagnosis flow"""
         try:
-            # Step 1: Predict the disease
-            predicted_disease, confidence_score =predict_disease(image)
-
-            # Step 2: Generate chatbot response
-            chatbot_response = generate_chatbot_response(predicted_disease, confidence_score, symptoms, session_id)
-
-            # Step 3: Save the prediction
-            prediction = SkinDiseasePrediction.objects.create(
-                user_name=user_name,
+            # Predict disease
+            predicted_disease, confidence_score = self.predict_disease(image)
+            
+            # Generate context-aware response
+            prompt = f"Diagnosis: {predicted_disease} ({confidence_score:.1f}% confidence)\nSymptoms: {symptoms}\nProvide a professional analysis:"
+            response = self.conversation_handler.invoke(
+                {"input": prompt},
+                config={"configurable": {"session_id": session_id}},
+            )
+            
+            # Save to database
+            SkinDiseasePrediction.objects.create(
+                user_id=session_id,
                 image=image,
                 symptoms=symptoms,
                 predicted_disease=predicted_disease,
                 confidence_score=confidence_score,
-                chatbot_response=chatbot_response,
+                chatbot_response=response.content,
             )
-
-            # Serialize the response
-            serializer = SkinDiseasePredictionSerializer(prediction)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
+            
+            return {
+                "predicted_disease": predicted_disease,
+                "confidence_score": confidence_score,
+                "analysis": response.content
+            }
+            
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-# Routing
-# Dermatology query function
-def query_dermatologist(query):
-    # Search for dermatologists by name or specialization
-    dermatologists = Dermatologist.objects.filter(
-        Q(name__icontains=query) | Q(specialization__icontains=query)
-    )
-    return dermatologists
-
-def route_input(user_input, image=None):
-    if image:
-        return "cnn_model"
-    elif "treatment" in user_input.lower():
-        return "rag_retriever"
-    elif "dermatologist" in user_input.lower():
-        return "database_query"
-    else:
-        return "llm_chat"
-
-def handle_database_query(query):
-    dermatologists = query_dermatologist(query)
-    if dermatologists:
-        dermatologist_info = "\n".join([f"{d.name} ({d.email})" for d in dermatologists])
-        return f"Here are some dermatologists:\n{dermatologist_info}"
-    else:
-        return "No dermatologists found."
-search_client = SearchClient(
-    endpoint=azure_search_endpoint,
-    index_name="medical-knowledge",
-    credential=AzureKeyCredential('azure_search_api'),
-)
-def retrieve_medical_info(query):
-    results = search_client.search(search_text=query)
-    return [result["content"] for result in results]
-    
-def handle_rag_retriever(query):
-    medical_info = retrieve_medical_info(query)
-    if medical_info:
-        return f"Here is some medical information:\n" + "\n".join(medical_info)
-    else:
-        return "No relevant medical information found."
-    # *********
+            raise Exception(f"Image processing failed: {str(e)}")
 
 
-def handle_input(user_input, image=None, session_id=None):
-    task = route_input(user_input, image)
-
-    if task == "cnn_model":
-        # Handle image-based diagnosis
-        predicted_disease, confidence_score = predict_disease(image)
-        chatbot_response = generate_chatbot_response(predicted_disease, confidence_score, "", session_id)
-    elif task == "rag_retriever":
-        # Handle treatment-related queries
-        chatbot_response = handle_rag_retriever(user_input)
-    elif task == "database_query":
-        # Handle dermatologist-related queries
-        chatbot_response = handle_database_query(user_input)
-    else:
-        # Handle general chat
-        response = conversation_handler.invoke(
-            {"input": user_input},
-            config={"configurable": {"session_id": session_id}},
-        )
-        chatbot_response = response['response']
-
-    return chatbot_response
-
-def process_user_query(user_message, session_id):
-    response = conversation_handler.invoke(
-        {"input": user_message},
-        config={"configurable": {"session_id": session_id}},
-    )
-    return response['response']
-def screen_content(user_message):
-    # Add actual content moderation logic here
-    return True
-
-def handle_user_query(user_message, session_id):
-    response = process_user_query(user_message, session_id)
-    is_appropriate = screen_content(user_message)
-    return response if is_appropriate else "Content blocked"
-
-class ChatbotView(APIView):
-    def post(self, request, *args, **kwargs):
-        user_message = request.data.get('message')
-        user_id = request.data.get('user_id', str(uuid.uuid4()))
-        image = request.FILES.get('image')
-
-        if not user_message and not image:
-            return Response(
-                {"error": "Message or image is required."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+    # Helper methods
+    def handle_text_input(self, message, session_id, is_followup=False):
+        """Process text input with intelligent routing"""
         try:
-            chatbot_response = handle_input(user_message, image, user_id)
-            chat = ChatHistory.objects.create(
-                user_id=user_id,
-                user_message=user_message,
-                chatbot_response=chatbot_response,
+            # Determine processing path
+            processing_mode = self.determine_processing_mode(message, is_followup)
+            
+            if processing_mode == "medical_search":
+                # Retrieve evidence-based medical information
+                results = self.retrieve_medical_info(message)
+                if results:
+                    prompt = f"Question: {message}\nMedical Context: {results}\nProvide a concise answer citing sources:"
+                    response = self.conversation_handler.invoke(
+                        {"input": prompt},
+                        config={"configurable": {"session_id": session_id}},
+                    )
+                    return {
+                        "text": response.content,
+                        "sources": results[:3],  # Return top 3 sources
+                        "suggested_actions": ["more_details", "dermatologist_referral"]
+                    }
+                else:
+                    # Fallback to general chat if no results found
+                    processing_mode = "general_chat"
+            
+            if processing_mode == "dermatologist_query":
+                dermatologists = self.query_dermatologists(message)
+                if dermatologists:
+                    return {
+                        "text": f"I found these dermatologists matching your query:\n{dermatologists}",
+                        "suggested_actions": ["book_appointment", "more_options"]
+                    }
+                else:
+                    return {
+                        "text": "I couldn't find dermatologists matching your criteria. Would you like to expand your search?",
+                        "suggested_actions": ["broaden_search"]
+                    }
+            
+            # Default to general conversation
+            response = self.conversation_handler.invoke(
+                {"input": message},
+                config={"configurable": {"session_id": session_id}},
             )
-            return Response(ChatHistorySerializer(chat).data, status=200)
+            
+            return {
+                "text": response.content,
+                "suggested_actions": self.generate_followup_actions(message)
+            }
+            
         except Exception as e:
-            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-           
-# parallelization    
-# Retrieval-Augment-Generation
+            raise Exception(f"Text processing failed: {str(e)}") 
+    def predict_disease(self, image):
+        """Predict disease from image with enhanced preprocessing"""
+        try:
+            img_width, img_height = 180, 180
+            pil_image = Image.open(image).convert("RGB")
+            
+            # Enhanced preprocessing
+            pil_image = pil_image.resize((img_width, img_height))
+            image_arr = tf.keras.utils.img_to_array(pil_image)
+            image_arr = tf.expand_dims(image_arr, axis=0)
+            image_arr = image_arr / 255.0  # Normalize
+            
+            # Predict and process results
+            predictions = model.predict(image_arr)
+            score = tf.nn.softmax(predictions[0])
+            predicted_idx = np.argmax(score)
+            
+            return data_cat[predicted_idx], float(score[predicted_idx] * 100)
+            
+        except Exception as e:
+            raise Exception(f"Prediction error: {str(e)}")
+    
+    def generate_chatbot_response(self,predicted_disease, confidence_score, symptoms, session_id):
+        """Generate AI response for diagnosis"""
+        try:
+            prompt = f"""
+            Diagnosis: {predicted_disease} ({confidence_score:.1f}% confidence)
+            Symptoms: {symptoms}
+            
+            As a dermatology assistant, provide:
+            1. A simple explanation of the condition
+            2. Recommended self-care measures
+            3. When to see a doctor
+            4. Any precautions
+            """
+            
+            response = self.conversation_handler.invoke(
+                {"input": prompt},
+                config={"configurable": {"session_id": session_id}},
+            )
+            return response.content
+        except Exception as e:
+            raise Exception(f"Response generation failed: {str(e)}")
 
 
-# Initialize Azure Cognitive Search client
+    def determine_processing_mode(self, message, is_followup):
+        """Intelligent routing of text inputs"""
+        message_lower = message.lower()
+        if is_followup:
+            return "general_chat"
+        elif any(keyword in message_lower for keyword in ["treatment", "medicine", "remedy"]):
+            return "medical_search"
+        elif any(keyword in message_lower for keyword in ["dermatologist", "doctor", "specialist"]):
+            return "dermatologist_query"
+        else:
+            return "general_chat"
+
+    def retrieve_medical_info(self, query):
+        """Enhanced medical information retrieval"""
+        try:
+            results = self.search_client.search(
+                search_text=query,
+                top=5,
+                include_total_count=True
+            )
+            return [{"content": hit["content"], "source": hit.get("source", "medical database")} 
+                   for hit in results]
+        except Exception as e:
+            print(f"Search error: {str(e)}")
+            return None
+
+    def query_dermatologists(self, query):
+        """Search for dermatologists with location awareness"""
+        try:
+            # Simple implementation - extend with location filtering if available
+            dermatologists = Dermatologist.objects.filter(
+                Q(name_icontains=query) | 
+                Q(specialization__icontains=query)
+            )[:5]  # Limit to 5 results
+            
+            if dermatologists:
+                return "\n".join([
+                    f"{d.name} - {d.specialization} ({d.location or 'Location not specified'})"
+                    for d in dermatologists
+                ])
+            return None
+        except Exception as e:
+            print(f"Dermatologist query error: {str(e)}")
+            return None
+
+    def generate_visual_feedback(self, image, diagnosis):
+        """Generate visual feedback about the diagnosis"""
+        # Placeholder for actual implementation
+        return {
+            "affected_areas": "Not specified",
+            "severity_indicator": "moderate",
+            "comparison_images": None
+        }
+
+    def generate_followup_actions(self, message):
+        """Generate context-aware suggested actions"""
+        message_lower = message.lower()
+        actions = []
+        
+        if any(word in message_lower for word in ["treatment", "medicine"]):
+            actions.append("alternative_treatments")
+        if "serious" in message_lower:
+            actions.append("emergency_contact")
+        if any(word in message_lower for word in ["prevent", "avoid"]):
+            actions.append("prevention_tips")
+            
+        if not actions:
+            actions = ["learn_more", "ask_specialist", "related_conditions"]
+            
+        return actions
+
+    def save_interaction(self, user_id, session_id, user_message, image, response_data):
+        """Save complete interaction to both chat history and prediction tables"""
+        try:
+            # Save to chat history
+            ChatHistory.objects.create(
+                user_id=user_id,
+                session_id=session_id,
+                user_message=user_message,
+                chatbot_response=response_data.get("response", ""),
+                metadata={
+                    "diagnosis": response_data.get("diagnosis"),
+                    "sources": response_data.get("sources"),
+                    "actions": response_data.get("suggested_actions")
+                }
+            )
+            
+            # If image was processed, save to predictions
+            if image and response_data.get("diagnosis"):
+                SkinDiseasePrediction.objects.create(
+                    user_id=user_id,
+                    session_id=session_id,
+                    image=image,
+                    symptoms=user_message,
+                    predicted_disease=response_data["diagnosis"]["condition"],
+                    confidence_score=response_data["diagnosis"]["confidence"],
+                    chatbot_response=response_data.get("response", ""),
+                    visual_feedback=response_data["diagnosis"]["visual_feedback"]
+                )
+        except Exception as e:
+            print(f"Failed to save interaction: {str(e)}")
+       

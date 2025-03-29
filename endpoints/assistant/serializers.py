@@ -29,12 +29,41 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
 
 
 class SkinDiseasePredictionSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    
     class Meta:
         model = SkinDiseasePrediction
-        # removed user_name field
-        fields = ['id','image', 'symptoms', 'predicted_disease', 'confidence_score', 'chatbot_response', 'created_at']
-    
+        fields = [
+            'id','image_url', 'symptoms', 
+            'predicted_disease', 'confidence_score', 
+            'chatbot_response', 'created_at','session' 
+        ]
+        read_only_fields = ['image_url']
+        extra_kwargs = {
+         'user': {'required': False} 
+        }
+    def get_image_url(self, obj):
+        """Generate full URL for the image"""
+        if obj.image and hasattr(obj.image, 'url'):
+            request = self.context.get('request')
+            if request is not None:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 class ChatHistorySerializer(serializers.ModelSerializer):
+    user_id = serializers.CharField(source='session.user_id', read_only=True) 
+
     class Meta:
         model = ChatHistory
-        fields = ['id', 'user_id', 'user_message', 'chatbot_response', 'created_at']
+        fields = [
+            'id',
+            'user_id',         
+            'user_message',
+            'chatbot_response',
+            'created_at',
+            'session'        
+        ]
+        extra_kwargs = {
+            'session': {'write_only': True}  
+        }

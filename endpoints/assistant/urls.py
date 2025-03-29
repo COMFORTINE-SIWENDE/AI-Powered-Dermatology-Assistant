@@ -1,6 +1,6 @@
 from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, LoginView, PasswordResetView, PasswordResetConfirmView, SkinDiseasePredictionView,ChatbotView
+from .views import RegisterView, LoginView, PasswordResetView, PasswordResetConfirmView, MedicalAssistantAPI
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -14,8 +14,8 @@ urlpatterns = [
     # Password Reset Endpoints
     path('password-reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password-reset/confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
-    path('predict/', SkinDiseasePredictionView.as_view(), name='predict'),
-    path('chat/',ChatbotView.as_view(),name='chat')
+    path('medical-assistant/', MedicalAssistantAPI.as_view(), name='assistant'),
+    
 
     # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 ]
