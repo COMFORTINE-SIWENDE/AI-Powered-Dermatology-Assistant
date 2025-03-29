@@ -351,7 +351,9 @@ class MedicalAssistantAPI(APIView):
             pil_image = Image.open(image).convert("RGB")
             
             # Enhanced preprocessing
+            pil_image=Image.open(image).convert("RGB")
             pil_image = pil_image.resize((img_width, img_height))
+            # image_arr = tf.keras.utils.array_to_img(pil_image)
             image_arr = tf.keras.utils.img_to_array(pil_image)
             image_arr = tf.expand_dims(image_arr, axis=0)
             image_arr = image_arr / 255.0  # Normalize

@@ -145,7 +145,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
             <textarea
               value={symptoms}
               onChange={(e) => setSymptoms(e.target.value)}
-              rows="10"
+              rows="6"
               placeholder="Tell more about your condition..."
               className="m-1 block w-[90%] p-2 rounded-md bg-blue-200 shadow-sm outline-0 focus:ring-2 focus:ring-blue-500 sm:text-sm"
             />
