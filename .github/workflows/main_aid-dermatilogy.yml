@@ -33,7 +33,7 @@ jobs:
         run: |
           source endpoints/venv/bin/activate
           pip install --upgrade pip
-          pip install -r endpoints/requirements.txt
+          pip install -r requirements.txt
 
       - name: Collect static files
         run: |
