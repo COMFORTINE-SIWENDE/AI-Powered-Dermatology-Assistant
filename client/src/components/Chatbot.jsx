@@ -35,11 +35,11 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       ...prev,
       {
         id: tempId,
-        text: "",
+        text: "Bot is typing...",
         timestamp: new Date(),
         isBot: true,
         isTyping: true,
-        type,
+        type: "typing-indicator",
         ...meta,
       },
     ]);
@@ -52,6 +52,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           const typingMessage = updated.find((msg) => msg.id === tempId);
           if (typingMessage) {
             typingMessage.text = displayedText;
+            typingMessage.type = type; // Update type as we start getting real content
           }
           return updated;
         });
@@ -78,6 +79,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       }
     }, 20); // Adjust typing speed here
   };
+
   // Add diagnosis to chat when available
   useEffect(() => {
     if (diagnosis) {
@@ -85,60 +87,20 @@ const Chatbot = ({ sessionId, diagnosis }) => {
         typeof diagnosis.confidence_score === "number"
           ? Math.round(diagnosis.confidence_score)
           : 0;
-      const diagnosisMessage = {
-        id: Date.now() + 1,
-        text: diagnosis.chatbot_response || "Here's your diagnosis analysis",
-        timestamp: new Date(),
-        isBot: true,
-        type: "diagnosis",
+
+      const diagnosisMeta = {
         confidence: confidence,
         condition: diagnosis.predicted_disease || "Unknown condition",
-        suggestedActions: diagnosis.suggested_actions || [],
       };
-      setMessages((prev) => [...prev, diagnosisMessage]);
+
+      simulateTyping(
+        diagnosis.chatbot_response || "Here's your diagnosis analysis",
+        diagnosis.suggested_actions || [],
+        "diagnosis",
+        diagnosisMeta
+      );
     }
   }, [diagnosis]);
-
-  // Simulate typing effect for bot messages
-  const addBotMessage = (text, suggestedActions = []) => {
-    setIsTyping(true);
-    let displayedText = "";
-    let i = 0;
-
-    const typingInterval = setInterval(() => {
-      if (i < text.length) {
-        displayedText += text.charAt(i);
-        setMessages((prev) => {
-          const lastMessage = prev[prev.length - 1];
-          if (lastMessage.isBot && lastMessage.isTyping) {
-            return [
-              ...prev.slice(0, -1),
-              {
-                ...lastMessage,
-                text: displayedText,
-              },
-            ];
-          }
-          return prev;
-        });
-        i++;
-      } else {
-        clearInterval(typingInterval);
-        setIsTyping(false);
-        setMessages((prev) => {
-          const lastMessage = prev[prev.length - 1];
-          return [
-            ...prev.slice(0, -1),
-            {
-              ...lastMessage,
-              isTyping: false,
-              suggestedActions,
-            },
-          ];
-        });
-      }
-    }, 20);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -157,20 +119,18 @@ const Chatbot = ({ sessionId, diagnosis }) => {
 
     try {
       setIsLoading(true);
-
-      // Add temporary bot typing indicator
+      const thinkingMessageId = Date.now() + 0.3;
       setMessages((prev) => [
         ...prev,
         {
-          id: Date.now() + 0.5, // Temporary ID
-          text: "",
+          id: thinkingMessageId,
+          text: "Bot is thinking...",
           timestamp: new Date(),
           isBot: true,
           isTyping: true,
-          type: "text",
+          type: "typing-indicator",
         },
       ]);
-
       // Call API
       const response = await axios.post(
         "http://localhost:8081/api/medical-assistant/",
@@ -182,21 +142,24 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           headers: { "Content-Type": "application/json" },
         }
       );
-
-      // Remove typing indicator and add actual response
-      setMessages((prev) => prev.filter((msg) => msg.id !== Date.now() + 0.5));
-
-      // Process API response
+      // Remove the thinking message before adding the real response
+      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessageId));
+      // Process API response with typing effect
       const { chat_response, suggested_actions } = response.data;
-      addBotMessage(chat_response.chatbot_response, suggested_actions);
+      simulateTyping(
+        chat_response.chatbot_response,
+        suggested_actions || [],
+        "text"
+      );
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages((prev) => {
-        const filtered = prev.filter((msg) => msg.id !== Date.now() + 0.5);
+        // Remove any typing indicators
+        const filtered = prev.filter((msg) => msg.type !== "typing-indicator");
         return [
           ...filtered,
           {
-            id: Date.now() + 1,
+            id: Date.now(),
             text: "Sorry, I encountered an error. Please try again.",
             timestamp: new Date(),
             isBot: true,
