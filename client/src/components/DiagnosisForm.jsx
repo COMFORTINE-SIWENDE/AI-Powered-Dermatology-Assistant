@@ -84,7 +84,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
         }
       );
 
-      // Simulate processing delay for better UX
+      // Simulating processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
       const processedResponse = {
         ...response.data,
@@ -151,7 +151,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           </div>
 
           <div className="space-y-6">
-            <div className="flex items-start space-x-4 text-white">
+            <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
               <FiShield className=" mt-1 flex-shrink-0" size={20} />
               <div>
                 <h3 className="font-bold font-serif text-2xl">Privacy First</h3>
@@ -162,7 +162,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
               </div>
             </div>
 
-            <div className="flex items-start space-x-4 text-white">
+            <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm rounded-2xl">
               <FiHeart className=" mt-1 flex-shrink-0" size={20} />
               <div>
                 <h3 className="font-bold font-serif text-2xl">
@@ -175,7 +175,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
               </div>
             </div>
 
-            <div className="flex space-x-4 text-white">
+            <div className="flex space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
               <FiMessageSquare className=" mt-1 flex-shrink-0" size={20} />
               <div>
                 <h3 className="font-bold font-serif text-2xl">
@@ -309,7 +309,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
             <div className="flex items-center text-sm text-black">
               <FiInfo className="mr-2 size-5 text-red-600" />
               <p>
-                For best results: Use clear, well-lit photos of the affected
+                For better results: Use clear, well-lit photos of the affected
                 area.
               </p>
             </div>

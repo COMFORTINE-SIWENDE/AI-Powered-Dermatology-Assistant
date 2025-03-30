@@ -29,13 +29,13 @@ const Chatbot = ({ sessionId, diagnosis }) => {
     let displayedText = "";
     let i = 0;
 
-    // Add temporary typing indicator message
+    // temporary typing indicator message
     const tempId = Date.now() + 0.5;
     setMessages((prev) => [
       ...prev,
       {
         id: tempId,
-        text: "Bot is typing...",
+        text: "thinking...",
         timestamp: new Date(),
         isBot: true,
         isTyping: true,
@@ -52,7 +52,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           const typingMessage = updated.find((msg) => msg.id === tempId);
           if (typingMessage) {
             typingMessage.text = displayedText;
-            typingMessage.type = type; // Update type as we start getting real content
+            typingMessage.type = type;
           }
           return updated;
         });
@@ -60,7 +60,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       } else {
         clearInterval(typingInterval);
         setIsTyping(false);
-        // Replace typing indicator with final message
+        //typing indicator with final message
         setMessages((prev) => {
           const filtered = prev.filter((msg) => msg.id !== tempId);
           return [
@@ -77,10 +77,10 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           ];
         });
       }
-    }, 20); // Adjust typing speed here
+    }, 20); // typing speed
   };
 
-  // Add diagnosis to chat when available
+  // Adding diagnosis to chat
   useEffect(() => {
     if (diagnosis) {
       const confidence =
@@ -142,7 +142,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           headers: { "Content-Type": "application/json" },
         }
       );
-      // Remove the thinking message before adding the real response
+      // Removing the thinking message before adding real response
       setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessageId));
       // Process API response with typing effect
       const { chat_response, suggested_actions } = response.data;
@@ -154,7 +154,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages((prev) => {
-        // Remove any typing indicators
+        // Removing any typing indicators
         const filtered = prev.filter((msg) => msg.type !== "typing-indicator");
         return [
           ...filtered,

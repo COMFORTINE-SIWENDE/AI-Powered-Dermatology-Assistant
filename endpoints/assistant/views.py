@@ -114,18 +114,24 @@ class MedicalAssistantAPI(APIView):
     """
     
     # System prompt for the AI assistant
-    SYSTEM_PROMPT = """You are DermatologyAI, an advanced medical assistant specialized in skin conditions. 
+    SYSTEM_PROMPT = """
+    You are DermatologyAI, an advanced medical assistant specialized ONLY in skin conditions. 
+
+    You must:
+    1. ONLY answer questions related to dermatology and skin health or maybe greetings
+    2. Politely decline to answer non-medical questions
+    3. For non-skin-related medical questions, recommend consulting a general practitioner
+
     You provide:
-    1. Professional diagnosis support based on image analysis
-    2. Treatment recommendations from verified medical sources
-    3. Dermatologist referrals when needed
-    4. General skin care advice
-    
+    - Professional diagnosis support (when images are provided)
+    - Treatment recommendations from verified medical sources
+    - Dermatologist referrals when needed
+    - General skin care advice
+
     Always:
-    - Be empathetic and professional
-    - Clarify when you're not certain
+    - Be empathetic,precise and professional
+    - Clarify when uncertain
     - Recommend professional consultation for serious conditions
-    - Maintain conversation context
     """
     
     def __init__(self, **kwargs):
@@ -187,6 +193,28 @@ class MedicalAssistantAPI(APIView):
             if image:
                 try:
                     predicted_disease, confidence_score = self.predict_disease(image)
+                     # Handle low confidence first
+                    if confidence_score < 65:
+                        response_data.update({
+                            "status": "low_confidence",
+                            "diagnosis": {
+                                "condition": predicted_disease,
+                                "confidence": confidence_score
+                            },
+                            "message": (
+                                f"Possible {predicted_disease} detected ({confidence_score:.1f}% confidence). "
+                                "For better accuracy:\n"
+                                "1. Upload a clearer, closer photo\n"
+                                "2. Ensure good lighting\n"
+                                "3. Consult a dermatologist"
+                            ),
+                            "suggested_actions": [
+                                "upload_new_image",
+                                "find_specialist"
+                            ]
+                        })
+                        return Response(response_data, status=status.HTTP_200_OK)
+                    
                     analysis = self.generate_chatbot_response(
                         predicted_disease=predicted_disease,
                         confidence_score=confidence_score,
@@ -209,13 +237,24 @@ class MedicalAssistantAPI(APIView):
                         prediction,
                         context={'request': request}
                     ).data
-                    response_data["suggested_actions"] = ["explain_diagnosis", "treatment_options"]
+                    response_data.update({
+                        "diagnosis": SkinDiseasePredictionSerializer(
+                            prediction,
+                            context={'request': request}
+                        ).data,
+                        "suggested_actions": ["explain_diagnosis", "treatment_options"],
+                        "status": "success",
+                        "message": None 
+                    })
                     message = f"I was diagnosed with {predicted_disease}. {message}"
 
                 except Exception as e:
                     return Response(
-                        {"error": f"Image processing failed: {str(e)}"},
-                        status=status.HTTP_400_BAD_REQUEST
+                            {
+                        "error": str(e),
+                        "suggested_actions": ["retry_upload", "contact_support"]
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
                     )
 
             # Process text message (if any)
@@ -294,9 +333,45 @@ class MedicalAssistantAPI(APIView):
 
 
     # Helper methods
+    def is_healthcare_question(self, message):
+        """Determine if the message is healthcare-related"""
+        healthcare_keywords = [
+            'skin', 'rash', 'acne', 'treatment', 'medicine', 'doctor',
+            'dermatologist', 'itch', 'itchy', 'red', 'bump', 'pimple',
+            'eczema', 'psoriasis', 'melanoma', 'hives', 'allergy',
+            'infection', 'diagnose', 'symptom', 'pain', 'swelling',
+            'prescription', 'medical', 'health', 'disease', 'condition',
+            'cure', 'relief', 'ointment', 'cream', 'antibiotic', 'fungal',
+            'virus', 'bacteria', 'allergic', 'reaction', 'scar', 'mark',
+            'spot', 'patch', 'dry', 'oily', 'sensitive', 'burn', 'sting',
+            'peel', 'blister', 'wart', 'mole', 'freckle', 'patch','hello','hey',
+            'thank you'
+        ]
+        
+        message_lower = message.lower()
+        
+        # Check for explicit non-healthcare phrases
+        non_healthcare_phrases = [
+            'how are you', 'hello', 'hi', 'good morning', 'good afternoon',
+            'good evening', 'what time', 'weather', 'joke', 'funny',
+            'who are you', 'your name', 'age', 'old are you'
+        ]
+        
+        if any(phrase in message_lower for phrase in non_healthcare_phrases):
+            return False
+        
+        # Check for healthcare keywords
+        return any(keyword in message_lower for keyword in healthcare_keywords)
     def handle_text_input(self, message, session_id, is_followup=False):
         """Process text input with intelligent routing"""
         try:
+            # Process text input with healthcare filtering
+            if not self.is_healthcare_question(message):
+                return {
+                    "text": "I specialize only in dermatology and skin health questions. "
+                        "Please ask me about skin conditions, treatments, or related medical concerns.",
+                    "suggested_actions": []
+                }
             # Determine processing path
             processing_mode = self.determine_processing_mode(message, is_followup)
             
@@ -349,24 +424,23 @@ class MedicalAssistantAPI(APIView):
         try:
             img_width, img_height = 180, 180
             pil_image = Image.open(image).convert("RGB")
-            
-            # Enhanced preprocessing
-            pil_image=Image.open(image).convert("RGB")
             pil_image = pil_image.resize((img_width, img_height))
-            # image_arr = tf.keras.utils.array_to_img(pil_image)
-            image_arr = tf.keras.utils.img_to_array(pil_image)
-            image_arr = tf.expand_dims(image_arr, axis=0)
-            image_arr = image_arr / 255.0  # Normalize
+            image_arr = tf.keras.utils.array_to_img(pil_image)
+            image_bat = tf.expand_dims(image_arr, axis=0)
             
             # Predict and process results
-            predictions = model.predict(image_arr)
-            score = tf.nn.softmax(predictions[0])
+            predict = model.predict(image_bat)
+            score = tf.nn.softmax(predict)
+            confidence_score = float(np.max(score)*100)
             predicted_idx = np.argmax(score)
+            predicted_disease = data_cat[predicted_idx]
+            print(f"Predicted:{predicted_disease} ({confidence_score:.2f}%)")
             
-            return data_cat[predicted_idx], float(score[predicted_idx] * 100)
+            return predicted_disease, confidence_score
             
         except Exception as e:
-            raise Exception(f"Prediction error: {str(e)}")
+            print(f"Prediction error: {str(e)}")
+            raise Exception("Could not process the image. Please try again with a clearer photo.")
     
     def generate_chatbot_response(self,predicted_disease, confidence_score, symptoms, session_id):
         """Generate AI response for diagnosis"""

@@ -73,19 +73,19 @@ DATABASE_PASSWORD=db_password
 
 ## 1.Training Convolution Neural Network with Azure ML Compute
 
-![Azure ML Studio:](ai-hack-img/Azure-machine-learning-studio.png)
+![Azure ML Studio:](endpoints/ai-hack-img/Azure-machine-learning-studio.png)
 
 #### Connecting Azure ML Studio with Vs Code
 
-![Connecting](ai-hack-img/azure-vs-code-model-training.png)
+![Connecting](endpoints/ai-hack-img/azure-vs-code-model-training.png)
 
 #### Saving the generalized CNN Model
 
-![.](ai-hack-img/how-to-get-the-model.png)
+![.](endpoints/ai-hack-img/how-to-get-the-model.png)
 
 #### Skin Disease Classification Model Summary
 
-![Summary:](ai-hack-img/model-summary.png)
+![Summary:](endpoints/ai-hack-img/model-summary.png)
 
 ## 2.Setting Development Environment
 
