@@ -1,84 +1,233 @@
-// Chatbot.jsx
 import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Loader } from "lucide-react";
-import { chat } from "../assets";
-import MulticolorProgressBar from "./Progres";
+import { Loader, Bot, User, Sparkles, ImageIcon, Send } from "lucide-react";
 
 const Chatbot = ({ sessionId, diagnosis }) => {
-  const chatUrl = "http://127.0.0.1:8081/api/chat/";
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
       id: 1,
-      text: "Hello! How can I help assist today?",
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      text: "Hello! I'm your dermatology assistant. How can I help you today?",
+      timestamp: new Date(),
       isBot: true,
+      type: "text",
+      suggestedActions: [],
     },
   ]);
   const [inputValue, setInputValue] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
   const chatContainerRef = useRef(null);
+
+  // Typing effect simulation
+  const simulateTyping = (
+    text,
+    suggestedActions = [],
+    type = "text",
+    meta = {}
+  ) => {
+    setIsTyping(true);
+    let displayedText = "";
+    let i = 0;
+
+    // Add temporary typing indicator message
+    const tempId = Date.now() + 0.5;
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: tempId,
+        text: "",
+        timestamp: new Date(),
+        isBot: true,
+        isTyping: true,
+        type,
+        ...meta,
+      },
+    ]);
+
+    const typingInterval = setInterval(() => {
+      if (i < text.length) {
+        displayedText += text.charAt(i);
+        setMessages((prev) => {
+          const updated = [...prev];
+          const typingMessage = updated.find((msg) => msg.id === tempId);
+          if (typingMessage) {
+            typingMessage.text = displayedText;
+          }
+          return updated;
+        });
+        i++;
+      } else {
+        clearInterval(typingInterval);
+        setIsTyping(false);
+        // Replace typing indicator with final message
+        setMessages((prev) => {
+          const filtered = prev.filter((msg) => msg.id !== tempId);
+          return [
+            ...filtered,
+            {
+              id: Date.now(),
+              text,
+              timestamp: new Date(),
+              isBot: true,
+              type,
+              suggestedActions,
+              ...meta,
+            },
+          ];
+        });
+      }
+    }, 20); // Adjust typing speed here
+  };
+  // Add diagnosis to chat when available
   useEffect(() => {
-    const diagnosisResponse = {
-      id: Date.now() + 1,
-      text: diagnosis,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      isBot: true,
-    };
-    diagnosis && setMessages((prev) => [...prev, diagnosisResponse]);
+    if (diagnosis) {
+      const confidence =
+        typeof diagnosis.confidence_score === "number"
+          ? Math.round(diagnosis.confidence_score)
+          : 0;
+      const diagnosisMessage = {
+        id: Date.now() + 1,
+        text: diagnosis.chatbot_response || "Here's your diagnosis analysis",
+        timestamp: new Date(),
+        isBot: true,
+        type: "diagnosis",
+        confidence: confidence,
+        condition: diagnosis.predicted_disease || "Unknown condition",
+        suggestedActions: diagnosis.suggested_actions || [],
+      };
+      setMessages((prev) => [...prev, diagnosisMessage]);
+    }
   }, [diagnosis]);
+
+  // Simulate typing effect for bot messages
+  const addBotMessage = (text, suggestedActions = []) => {
+    setIsTyping(true);
+    let displayedText = "";
+    let i = 0;
+
+    const typingInterval = setInterval(() => {
+      if (i < text.length) {
+        displayedText += text.charAt(i);
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1];
+          if (lastMessage.isBot && lastMessage.isTyping) {
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...lastMessage,
+                text: displayedText,
+              },
+            ];
+          }
+          return prev;
+        });
+        i++;
+      } else {
+        clearInterval(typingInterval);
+        setIsTyping(false);
+        setMessages((prev) => {
+          const lastMessage = prev[prev.length - 1];
+          return [
+            ...prev.slice(0, -1),
+            {
+              ...lastMessage,
+              isTyping: false,
+              suggestedActions,
+            },
+          ];
+        });
+      }
+    }, 20);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (inputValue.trim() === "") return;
+    if (inputValue.trim() === "" || isLoading || isTyping) return;
 
+    // Add user message
     const newUserMessage = {
       id: Date.now(),
       text: inputValue,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
+      timestamp: new Date(),
       isBot: false,
+      type: "text",
     };
     setMessages((prev) => [...prev, newUserMessage]);
     setInputValue("");
 
     try {
       setIsLoading(true);
-      const response = await axios.post(
-        chatUrl,
+
+      // Add temporary bot typing indicator
+      setMessages((prev) => [
+        ...prev,
         {
-          message: input,
+          id: Date.now() + 0.5, // Temporary ID
+          text: "",
+          timestamp: new Date(),
+          isBot: true,
+          isTyping: true,
+          type: "text",
+        },
+      ]);
+
+      // Call API
+      const response = await axios.post(
+        "http://localhost:8081/api/medical-assistant/",
+        {
+          message: inputValue,
           session_id: sessionId,
         },
         {
-          withCredentials: true,
+          headers: { "Content-Type": "application/json" },
         }
       );
-      const botResponse = {
-        id: Date.now() + 1,
-        text: response.data.chatbot_response,
-        timestamp: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        isBot: true,
-      };
-      setMessages((prev) => [...prev, botResponse]);
-      setIsLoading(false);
+
+      // Remove typing indicator and add actual response
+      setMessages((prev) => prev.filter((msg) => msg.id !== Date.now() + 0.5));
+
+      // Process API response
+      const { chat_response, suggested_actions } = response.data;
+      addBotMessage(chat_response.chatbot_response, suggested_actions);
     } catch (error) {
       console.error("Error sending message:", error);
+      setMessages((prev) => {
+        const filtered = prev.filter((msg) => msg.id !== Date.now() + 0.5);
+        return [
+          ...filtered,
+          {
+            id: Date.now() + 1,
+            text: "Sorry, I encountered an error. Please try again.",
+            timestamp: new Date(),
+            isBot: true,
+            type: "error",
+          },
+        ];
+      });
+    } finally {
       setIsLoading(false);
     }
   };
 
+  const handleQuickAction = (action) => {
+    let message = "";
+    switch (action) {
+      case "alternative_treatments":
+        message = "What are some alternative treatments for my condition?";
+        break;
+      case "learn_more":
+        message = "Can you tell me more about this condition?";
+        break;
+      case "ask_specialist":
+        message = "When should I consult a specialist about this?";
+        break;
+      default:
+        message = action;
+    }
+    setInputValue(message);
+  };
+
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
@@ -86,23 +235,32 @@ const Chatbot = ({ sessionId, diagnosis }) => {
     }
   }, [messages]);
 
+  // Format timestamp
+  const formatTime = (date) => {
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
-    <div className="relative flex flex-col h-full w-full max-w-md bg-gray-100 rounded-lg overflow-hidden border border-green-500 shadow-sm ">
-      <div className="bg-blue-600 text-white p-4 z-10">
-        <h2 className="text-xl font-semibold">Dermatology Assistant</h2>
-      </div>
-      <div className="absolute inset-0">
-        <div className="h-full w-full relative">
-          <img className="h-full w-full" src={chat} />
-          <div className="absolute bg-black/50  inset-0" />
+    <div className="flex flex-col h-[87%] mt-4 max-w-md mx-auto bg-white rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden ">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center">
+        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">
+          <Bot size={20} />
+        </div>
+        <div>
+          <h2 className="text-lg font-semibold">Dermatology Assistant</h2>
+          <p className="text-xs opacity-80">
+            {isTyping ? "Typing..." : "Online"}
+          </p>
         </div>
       </div>
+
+      {/* Chat messages */}
       <div
         ref={chatContainerRef}
-        className="flex-1 p-4 overflow-y-auto z-10"
-        style={{ height: "100%" }}
+        className="flex-1 p-4 overflow-y-auto bg-gray-50"
       >
-        <div className="space-y-3">
+        <div className="space-y-4">
           {messages.map((message) => (
             <div
               key={message.id}
@@ -111,43 +269,158 @@ const Chatbot = ({ sessionId, diagnosis }) => {
               }`}
             >
               <div
-                className={`p-3 rounded-lg shadow-sm max-w-[80%] break-words whitespace-pre-wrap ${
-                  message.isBot
-                    ? "bg-white text-gray-800"
-                    : "bg-blue-600 text-white"
+                className={`flex max-w-[85%] ${
+                  !message.isBot ? "flex-row-reverse" : ""
                 }`}
               >
-                <p>{message.text}</p>
-                <p
-                  className={`text-xs mt-1 ${
-                    message.isBot ? "text-gray-500" : "text-blue-100"
+                {/* Avatar */}
+                <div
+                  className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center mt-1 ${
+                    message.isBot
+                      ? "bg-blue-100 text-blue-600 mr-2"
+                      : "bg-purple-100 text-purple-600 ml-2"
                   }`}
                 >
-                  {message.timestamp}
-                </p>
+                  {message.isBot ? <Bot size={16} /> : <User size={16} />}
+                </div>
+
+                {/* Message Bubble */}
+                <div
+                  className={`p-3 rounded-2xl ${
+                    message.isBot
+                      ? "bg-white text-gray-800 border border-gray-200"
+                      : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
+                  } ${
+                    message.type === "diagnosis"
+                      ? "border-l-4 border-blue-500"
+                      : ""
+                  }`}
+                >
+                  {/* Diagnosis Header (only shows for diagnosis messages) */}
+                  {message.type === "diagnosis" && (
+                    <div className="flex items-center mb-2">
+                      <Sparkles size={16} className="text-yellow-500 mr-1" />
+                      <span className="text-xs font-semibold text-blue-600">
+                        DIAGNOSIS: {message.condition} (
+                        {Math.round(message.confidence)}% confidence)
+                      </span>
+                    </div>
+                  )}
+                  {/* Message Text */}
+                  <p
+                    className={`whitespace-pre-wrap ${
+                      message.isTyping ? "blink-cursor" : ""
+                    }`}
+                  >
+                    {message.text}
+                    {message.isTyping && (
+                      <span className="inline-block w-2 h-4 bg-gray-400 ml-1 blink"></span>
+                    )}
+                  </p>
+                  {/* Timestamp */}
+                  <p
+                    className={`text-xs mt-1 ${
+                      message.isBot ? "text-gray-500" : "text-white/70"
+                    }`}
+                  >
+                    {formatTime(message.timestamp)}
+                  </p>
+                  {/* Suggested Actions (shows for diagnosis or other bot messages) */}
+                  {message.suggestedActions?.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-100">
+                      <p className="text-xs text-gray-500 mb-1">
+                        Quick actions:
+                      </p>
+                      <div className="flex flex-wrap gap-1">
+                        {message.suggestedActions.map((action, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => handleQuickAction(action)}
+                            className="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded-full hover:bg-blue-100 transition-colors"
+                          >
+                            {typeof action === "string"
+                              ? action.replace(/_/g, " ")
+                              : action}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </div>
-      <form onSubmit={handleSubmit} className="p-4 relative bg-white/90">
-        <MulticolorProgressBar isLoading={isLoading} />
-        <div className="flex">
+      {/* Input area */}
+      <form
+        onSubmit={handleSubmit}
+        className="p-3 border-t border-gray-200 bg-white"
+      >
+        <div className="flex items-center">
+          <button
+            type="button"
+            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 mr-1"
+            title="Upload image"
+          >
+            <ImageIcon size={18} />
+          </button>
+
           <input
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-l-full outline-none ring-2 ring-blue-500"
-            placeholder="Type a message..."
+            className="flex-1 px-4 py-2 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Type your question..."
+            disabled={isLoading || isTyping}
           />
+
           <button
             type="submit"
-            className="px-4 py-2 bg-blue-700 text-white rounded-r-full hover:bg-blue-500 outline-none ring-2 ring-blue-500 cursor-pointer flex justify-center items-center font-semibold text-sm"
+            disabled={isLoading || isTyping || inputValue.trim() === ""}
+            className={`ml-2 p-2 rounded-full ${
+              isLoading || isTyping || inputValue.trim() === ""
+                ? "text-gray-400"
+                : "text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+            }`}
           >
-            {isLoading ? <Loader className="animate-spin" /> : "Send"}
+            {isLoading ? (
+              <Loader className="animate-spin" size={18} />
+            ) : (
+              <Send size={18} />
+            )}
           </button>
         </div>
       </form>
+
+      {/* Styles */}
+      <style jsx>{`
+        .blink {
+          animation: blink 1s infinite;
+        }
+        @keyframes blink {
+          0%,
+          100% {
+            opacity: 1;
+          }
+          50% {
+            opacity: 0;
+          }
+        }
+        .blink-cursor {
+          border-right: 2px solid transparent;
+          animation: blink-cursor 0.7s infinite;
+        }
+        @keyframes blink-cursor {
+          0%,
+          100% {
+            border-right-color: transparent;
+          }
+          50% {
+            border-right-color: currentColor;
+          }
+        }
+      `}</style>
     </div>
   );
 };
