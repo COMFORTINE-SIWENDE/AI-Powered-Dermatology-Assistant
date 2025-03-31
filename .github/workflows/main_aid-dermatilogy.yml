@@ -37,7 +37,6 @@ jobs:
 
       - name: Collect static files
         run: |
-          source venv/bin/activate
           python endpoints/manage.py collectstatic --noinput
 
       - name: Zip artifact for deployment
