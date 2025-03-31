@@ -24,10 +24,10 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies for PostgreSQL
+      - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libpq-dev python3-dev
+          sudo apt-get install -y libpq-dev python3-dev default-libmysqlclient-dev build-essential
 
       - name: Create and start virtual environment
         run: |
@@ -37,6 +37,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install --upgrade pip
+          pip install mysqlclient
           pip install -r requirements.txt
 
       - name: Collect static files
