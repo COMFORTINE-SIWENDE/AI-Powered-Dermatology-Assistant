@@ -14,7 +14,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
@@ -26,30 +26,35 @@ jobs:
 
       - name: Create and start virtual environment
         run: |
-          python -m venv endpoints/venv
-          source endpoints/venv/bin/activate
+          cd enpoints
+          python -m venv venv
+          source venv/bin/activate
 
       - name: Install dependencies
         run: |
-          source endpoints/venv/bin/activate
+          cd endpoints
           pip install --upgrade pip
-          pip install -r endpoints/requirements.txt
+          pip install -r requirements.txt
 
       - name: Collect static files
         run: |
-          source endpoints/venv/bin/activate
-          python endpoints/manage.py collectstatic --noinput
+          cd endpoints
+          python manage.py collectstatic --noinput
+
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
 
       - name: Zip artifact for deployment
         run: |
           cd endpoints
-          zip -r release.zip . -x 'venv/*'
+          zip release.zip ./* -r
 
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: endpoints/release.zip
+          path: |
+            endpoints/release.zip
+            !venv/
 
   deploy:
     runs-on: ubuntu-latest
@@ -65,7 +70,7 @@ jobs:
           name: python-app
 
       - name: Unzip artifact for deployment
-        run: unzip release.zip -d .
+        run: unzip release.zip
 
       - name: "Deploy to Azure Web App"
         uses: azure/webapps-deploy@v3
