@@ -98,12 +98,12 @@ WSGI_APPLICATION = 'api.wsgi.application'
 DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'medical',
-        'USER': 'root',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'medical', 
+        'USER': 'myuser',     
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',
-        'PORT': '3306',
+        'PORT': '5432',          
     }
 }
 
