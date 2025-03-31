@@ -99,8 +99,8 @@ DATABASE_PASSWORD = os.getenv("DATABASE_PASSWORD")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'medical', 
-        'USER': 'myuser',     
+        'NAME': 'diagnose', 
+        'USER': 'siwende',     
         'PASSWORD': DATABASE_PASSWORD,
         'HOST': 'localhost',
         'PORT': '5432',          
