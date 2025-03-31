@@ -35,10 +35,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Collect static files
-        run: |
-          python endpoints/manage.py collectstatic --noinput
-
       - name: Zip artifact for deployment
         run: |
           cd endpoints
