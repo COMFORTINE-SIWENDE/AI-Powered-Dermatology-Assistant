@@ -55,7 +55,6 @@ langchain-openai==0.3.8
 langchain-text-splitters==0.3.6
 langsmith==0.3.13
 libclang==18.1.1
-mariadb==1.1.12
 Markdown==3.7
 markdown-it-py==3.0.0
 MarkupSafe==3.0.2
