@@ -1,7 +1,8 @@
 import os
 from .settings import *
 from .settings import BASE_DIR
-
+from dotenv import load_dotenv
+load_dotenv()
 
 # original
 # ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
@@ -49,7 +50,7 @@ STORAGES = {
     },
 }
 
-CONNECTION = os.environ['AZURE_POSTGRESQL_CONNECTIONSTRING']
+CONNECTION = os.getenv['AZURE_POSTGRESQL_CONNECTIONSTRING']
 CONNECTION_STR = {pair.split('=')[0]:pair.split('=')[1] for pair in CONNECTION.split(' ')}
 
 DATABASES = {
