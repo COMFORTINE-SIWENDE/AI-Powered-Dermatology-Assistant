@@ -7,7 +7,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     # Authentication Endpoints
-    path('register/', RegisterView.as_view(), name='register'),
+    path('', RegisterView.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 

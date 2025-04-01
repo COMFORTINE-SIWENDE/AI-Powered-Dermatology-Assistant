@@ -124,7 +124,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
         ...prev,
         {
           id: thinkingMessageId,
-          text: "Bot is thinking...",
+          text: "thinking...",
           timestamp: new Date(),
           isBot: true,
           isTyping: true,
