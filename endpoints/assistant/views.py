@@ -117,10 +117,6 @@ class MedicalAssistantAPI(APIView):
     SYSTEM_PROMPT = """
     You are DermatologyAI, an advanced medical assistant specialized ONLY in skin conditions. 
 
-    You must:
-    1. Politely decline to answer non-medical questions
-    2. For non-skin-related medical questions, recommend consulting a general practitioner
-
     You provide:
     - Professional diagnosis support (when images are provided)
     - Treatment recommendations from verified medical sources
@@ -471,7 +467,7 @@ class MedicalAssistantAPI(APIView):
             return "general_chat"
         elif any(keyword in message_lower for keyword in ["treatment", "medicine", "remedy"]):
             return "medical_search"
-        elif any(keyword in message_lower for keyword in ["dermatologist", "doctor", "specialist"]):
+        elif any(keyword in message_lower for keyword in ["dermatologist", "doctor", "specialist","recommend a doctor"]):
             return "dermatologist_query"
         else:
             return "general_chat"
@@ -493,18 +489,22 @@ class MedicalAssistantAPI(APIView):
     def query_dermatologists(self, query):
         """Search for dermatologists with location awareness"""
         try:
+            print(f"DEBUG QUERY: {query}") 
+            base_qs = Dermatologist.objects.filter(
+            Q(specialization__icontains="dermatology") |
+            Q(name__icontains="dermatology"))
             # Simple implementation - extend with location filtering if available
-            dermatologists = Dermatologist.objects.filter(
-                Q(name_icontains=query) | 
-                Q(specialization__icontains=query)
-            )[:5]  # Limit to 5 results
-            
-            if dermatologists:
-                return "\n".join([
-                    f"{d.name} - {d.specialization} ({d.location or 'Location not specified'})"
-                    for d in dermatologists
-                ])
-            return None
+            if "specializing in" in query.lower():
+                _, condition = query.lower().split("specializing in", 1)
+                condition = condition.strip()
+                # Search for both dermatology AND condition
+                return base_qs.filter(
+                    Q(specialization__icontains=condition) |
+                    Q(name__icontains=condition)
+                )[:5]
+        
+            return base_qs[:5]
+           
         except Exception as e:
             print(f"Dermatologist query error: {str(e)}")
             return None

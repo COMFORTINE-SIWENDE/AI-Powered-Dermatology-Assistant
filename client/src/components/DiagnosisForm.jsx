@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { azure, BGlogo, fabric, Upload } from "../assets";
 import {
@@ -8,6 +8,7 @@ import {
   FiHeart,
   FiShield,
 } from "react-icons/fi";
+import { Globalstate } from "../context/Globalcontext";
 
 const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -32,8 +33,7 @@ const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
 };
 
 const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
-  const [image, setImage] = useState(null);
-  const [imageURL, setImageURL] = useState(null);
+  const { image, setImage, imageURL, setImageURL } = useContext(Globalstate);
   const [symptoms, setSymptoms] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -200,7 +200,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
         <div className="p-8 flex flex-col mostleftr">
           <div className="relative h-64 mb-6 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
             {imageURL ? (
-              <>
+              <div>
                 <img
                   src={imageURL}
                   className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${
@@ -215,7 +215,16 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
                 >
                   {showImage ? "Hide Image" : "Show Image"}
                 </button>
-              </>
+                {imageURL && (
+                  <button
+                    type="button"
+                    onClick={() => setImageURL(false)}
+                    className="z-10 absolute bottom-2 right-[9em] bg-[#7096ff] px-3 py-1 rounded-[5px] shadow-sm hover:bg-[blue] transition-colors text-white font-bold transform-stroke ring-2 ring-white"
+                  >
+                    Upload Image
+                  </button>
+                )}
+              </div>
             ) : (
               <div
                 className="w-full h-full flex flex-col items-center justify-center p-4 text-center cursor-pointer"

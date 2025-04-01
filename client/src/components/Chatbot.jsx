@@ -1,8 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { Loader, Bot, User, Sparkles, ImageIcon, Send } from "lucide-react";
+import { Globalstate } from "../context/Globalcontext";
 
 const Chatbot = ({ sessionId, diagnosis }) => {
+  const { setImage } = useContext(Globalstate);
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -202,6 +204,10 @@ const Chatbot = ({ sessionId, diagnosis }) => {
   const formatTime = (date) => {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
+  const uploadRef = useRef(null);
+  const HandleUpload = (e) => {
+    uploadRef.current.click();
+  };
 
   return (
     <div className="flex flex-col h-[87%] mt-4 max-w-md mx-auto bg-white rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden ">
@@ -326,7 +332,19 @@ const Chatbot = ({ sessionId, diagnosis }) => {
             className="p-2 rounded-full text-gray-500 hover:bg-gray-100 mr-1"
             title="Upload image"
           >
-            <ImageIcon size={18} />
+            <ImageIcon
+              className="cursor-pointer"
+              onClick={HandleUpload}
+              size={18}
+            />
+            <input
+              ref={uploadRef}
+              type="file"
+              onChange={(e) => setImage(e.target.files[0])}
+              className="hidden"
+              accept="image/*"
+              capture="environment"
+            />
           </button>
 
           <input
