@@ -31,8 +31,8 @@ jobs:
       - name: Install dependencies
         run: |
           source venv/bin/activate
-          cd endpoints
           pip install --upgrade pip
+          cd endpoints
           pip install -r requirements.txt
       - name: Collect static files
         run: |
