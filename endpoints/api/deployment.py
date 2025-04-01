@@ -2,10 +2,28 @@ import os
 from .settings import *
 from .settings import BASE_DIR
 
-ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
-CSRF_TRUSTED_ORIGINS = ['https://'+os.environ['WEBSITE_HOSTNAME']]
+
+# original
+# ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
+# CSRF_TRUSTED_ORIGINS = ['https://'+os.environ['WEBSITE_HOSTNAME']]
+# DEBUG = False
+# # SECRET_KEY=os.environ['MY_SECRET_KEY']
+
+# original end
+
+
+WEBSITE_HOSTNAME = os.getenv("WEBSITE_HOSTNAME")  # Returns None if missing
+SECRET_KEY = os.getenv("MY_SECRET_KEY")  # Returns None if missing
+
+# Validate required variables
+if not WEBSITE_HOSTNAME:
+    raise ValueError("WEBSITE_HOSTNAME environment variable is missing! Check Azure App Settings.")
+if not SECRET_KEY:
+    raise ValueError("MY_SECRET_KEY environment variable is missing! Check Azure App Settings.")
+
+ALLOWED_HOSTS = [WEBSITE_HOSTNAME]
+CSRF_TRUSTED_ORIGINS = [f'https://{WEBSITE_HOSTNAME}']
 DEBUG = False
-SECRET_KEY=os.environ['MY_SECRET_KEY']
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
