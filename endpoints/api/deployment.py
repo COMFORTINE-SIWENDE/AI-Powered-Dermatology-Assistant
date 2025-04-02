@@ -50,19 +50,30 @@ STORAGES = {
     },
 }
 
-CONNECTION = os.getenv('AZURE_POSTGRESQL_CONNECTIONSTRING')
-CONNECTION_STR = {pair.split('=')[0]:pair.split('=')[1] for pair in CONNECTION.split(' ')}
+import os
+
+# Example connection string (in production, use environment variables)
+CONNECTION_STRING = "Database=postgres;Server=aid-dermatilogy-server.postgres.database.azure.com;User Id=udbfaowfpe;Password=$nBC8ove4tPuk5Rb"
+
+# Parse the connection string
+connection_params = {}
+for part in CONNECTION_STRING.split(';'):
+    if '=' in part:
+        key, value = part.split('=', 1)
+        connection_params[key.lower()] = value
 
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": CONNECTION_STR['dbname'],
-        "HOST": CONNECTION_STR['host'],
-        "USER": CONNECTION_STR['user'],
-        "PASSWORD": CONNECTION_STR['password'],
+        "NAME": connection_params['database'],
+        "HOST": connection_params['server'],
+        "USER": connection_params['user id'],
+        "PASSWORD": connection_params['password'],
+        "OPTIONS": {
+            'sslmode': 'require',  # Important for Azure
+        },
     }
 }
-
 
 
 
