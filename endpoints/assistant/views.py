@@ -40,8 +40,8 @@ from azure.core.credentials import AzureKeyCredential
 
 
 llm = AzureChatOpenAI(
-    openai_api_key=api_key,
-    azure_endpoint=api_endpoint,
+    openai_api_key=settings.AZURE_OPENAI_API_KEY,
+    azure_endpoint=settings.AZURE_OPENAI_API_ENDPOINT,
     api_version="2024-05-01-preview",
     model_name="gpt-35-turbo",
     temperature=0.7,
