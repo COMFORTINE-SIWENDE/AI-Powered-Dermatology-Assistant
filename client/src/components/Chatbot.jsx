@@ -134,8 +134,13 @@ const Chatbot = ({ sessionId, diagnosis }) => {
         },
       ]);
       // Call API
+      const isDevelopment = import.meta.env.MODE === "development";
+      const baseUrl = isDevelopment
+        ? "http://localhost:8081"
+        : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net";
+
       const response = await axios.post(
-        "http://localhost:8081/api/medical-assistant/",
+        `${baseUrl}/api/medical-assistant/`,
         {
           message: inputValue,
           session_id: sessionId,

@@ -70,8 +70,12 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
     if (sessionId) formData.append("session_id", sessionId);
 
     try {
+      const isDevelopment = import.meta.env.MODE === "development";
+      const baseUrl = isDevelopment
+        ? "http://localhost:8081"
+        : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net";
       const response = await axios.post(
-        "http://localhost:8081/api/medical-assistant/",
+        `${baseUrl}/api/medical-assistant/`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },

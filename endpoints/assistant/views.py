@@ -89,9 +89,19 @@ class PasswordResetConfirmView(ResetPasswordConfirm):
     serializer_class = PasswordResetConfirmSerializer
 
 # Load the model
-model_path = os.path.abspath(
-    "/home/comphortine/Comphortine/Dermatology Assistant/endpoints/Skin_Disease_Classification.keras"
-)
+# model_path = os.path.abspath(
+#     "endpoints/static/model/Skin_Disease_Classification.keras"
+# )
+# Get the directory of the current script (views.py)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Go up one level to the 'endpoints' directory
+base_dir = os.path.dirname(current_dir)
+
+# Build the absolute path to the model
+model_path = os.path.join(base_dir, "model", "Skin_Disease_Classification.keras")
+
+print("Resolved model path:", model_path) 
 model = tf.keras.models.load_model(model_path)
 # print(model.summary())
 # print(f"Model file path: {os.path.abspath('model.h5')}")
