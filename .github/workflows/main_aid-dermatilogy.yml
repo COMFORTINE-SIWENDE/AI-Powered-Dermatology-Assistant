@@ -80,3 +80,4 @@ jobs:
           app-name: "aid-dermatilogy"
           slot-name: "Production"
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_68C025B29C09438CB9C20318E1CD582B }}
+          package: .
