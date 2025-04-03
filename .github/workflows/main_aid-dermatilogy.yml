@@ -30,6 +30,11 @@ jobs:
           source venv/bin/activate
 
       - name: Install dependencies
+        env:
+          AZURE_OPENAI_API_KEY: ${{ secrets.AZURE_OPENAI_API_KEY }}
+          AZURE_OPENAI_API_ENDPOINT: ${{ secrets.AZURE_OPENAI_API_ENDPOINT }}
+          AZURE_AI_SEARCH_KEY: ${{ secrets.AZURE_AI_SEARCH_KEY}}
+          AZURE_AI_SEARCH_ENDPOINT: ${{ secrets.AZURE_AI_SEARCH_ENDPOINT}}
         run: |
           source venv/bin/activate
           pip install --upgrade pip
