@@ -38,10 +38,20 @@ jobs:
         run: |
           source venv/bin/activate
           python endpoints/manage.py collectstatic --noinput
-      - name: Zip artifact for deployment
+      - name: Generate deployment package
         run: |
+          # Create a .sh file that will run migrations on startup
+          echo '#!/bin/bash' > startup.sh
+          echo 'pip install -r requirements.txt' >> startup.sh
+          echo 'python manage.py migrate --noinput' >> startup.sh
+          echo 'gunicorn --bind=0.0.0.0 --timeout 600 endpoints.wsgi' >> startup.sh
+          chmod +x startup.sh
+
           cd endpoints
-          zip release.zip ./* -r
+          zip -r ../release.zip ./*
+          cd ..
+          zip -ur release.zip startup.sh
+
       - name: Upload artifact for deployment jobs
         uses: actions/upload-artifact@v4
         with:
