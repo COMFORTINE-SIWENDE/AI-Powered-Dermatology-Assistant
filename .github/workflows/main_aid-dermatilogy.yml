@@ -23,20 +23,13 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-
-      - name: Create and start virtual environment
-        run: |
-          python -m venv venv
-          source venv/bin/activate
       - name: Install dependencies
         run: |
-          source venv/bin/activate
           pip install --upgrade pip
           cd endpoints
           pip install -r requirements.txt
       - name: Collect static files
         run: |
-          source venv/bin/activate
           python endpoints/manage.py collectstatic --noinput
       - name: Zip artifact for deployment
         run: |
@@ -71,4 +64,4 @@ jobs:
         with:
           app-name: "aid-dermatilogy"
           slot-name: "Production"
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_68C025B29C09438CB9C20318E1CD582B }}
+          publish-profile: ${{ secrets.AZUZE_WEBAPP_PUBLISH_PROFILE }}
