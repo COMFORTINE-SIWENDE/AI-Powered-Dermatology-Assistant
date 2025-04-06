@@ -135,12 +135,13 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       ]);
       // Call API
       const isDevelopment = import.meta.env.MODE === "development";
+      console.log(isDevelopment);
       const baseUrl = isDevelopment
-        ? "http://localhost:8081"
-        : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net";
+        ? "http://localhost:8081/api/medical-assistant/"
+        : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
 
       const response = await axios.post(
-        `${baseUrl}/api/medical-assistant/`,
+        `${baseUrl}`,
         {
           message: inputValue,
           session_id: sessionId,

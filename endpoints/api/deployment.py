@@ -13,8 +13,8 @@ load_dotenv()
 # original end
 
 
-WEBSITE_HOSTNAME = os.getenv("WEBSITE_HOSTNAME")  # Returns None if missing
-SECRET_KEY = os.getenv("MY_SECRET_KEY")  # Returns None if missing
+WEBSITE_HOSTNAME = "https://purple-river-00fd8ef0f.6.azurestaticapps.net/"
+SECRET_KEY = os.getenv("MY_SECRET_KEY") 
 
 # Validate required variables
 if not WEBSITE_HOSTNAME:
@@ -53,8 +53,7 @@ STORAGES = {
 import os
 
 # Example connection string (in production, use environment variables)
-CONNECTION_STRING = "Database=postgres;Server=aid-dermatilogy-server.postgres.database.azure.com;User Id=udbfaowfpe;Password=$nBC8ove4tPuk5Rb"
-
+CONNECTION_STRING = "Database=postgres;Server=dermatology-db.postgres.database.azure.com;User Id=dermatology;Password=comphortinecr7."
 # Parse the connection string
 connection_params = {}
 for part in CONNECTION_STRING.split(';'):

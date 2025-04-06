@@ -166,7 +166,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # Use console 
 # EMAIL_HOST_PASSWORD = 'your-email-password'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",  # React front end
+    "http://localhost:5173",
 ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
