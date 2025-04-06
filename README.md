@@ -72,6 +72,12 @@ DATABASE_PASSWORD=db_password
 
 # Project Workflow
 
+## The Autonomous Agentic System
+
+- Routing
+- Prompt Chaining
+- Retrieval Augmented Generation (RAG)
+
 ### Project Tools,Frameworks and Libraries
 
 - Azure Machine Learning Compute
@@ -121,16 +127,10 @@ DATABASE_PASSWORD=db_password
 - 📅 **Next Review**:
   ![Summary:](endpoints/ai-hack-img/model-summary.png)
 
-## 2.Setting Development Environment
+## Fabrics
 
-## 3.Autonomous Chatbot AI Agent
+### 1. SQL Notebooks
 
-#### Integrating AzureOpenAI,Azure AI Search to Iteract with the Skin Disease Classification Model and the System.
+### 2. OneLake
 
-### 3.1 Prompt Chaining
-
-### 3.2 Retrieval Augmented Generation
-
-### 3.3 Routing
-
-### 3.4 Parallelization
+### 3. PowerBI Analytics
