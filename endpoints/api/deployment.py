@@ -5,25 +5,25 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # original
-# ALLOWED_HOSTS = [os.environ['CLIENT_URL']]
-# CSRF_TRUSTED_ORIGINS = ['https://'+os.environ['CLIENT_URL']]
+# ALLOWED_HOSTS = [os.environ['WEBSITE_HOSTNAME']]
+# CSRF_TRUSTED_ORIGINS = ['https://'+os.environ['WEBSITE_HOSTNAME']]
 # DEBUG = False
 # # SECRET_KEY=os.environ['MY_SECRET_KEY']
 
 # original end
 
 
-CLIENT_URL = "https://purple-river-00fd8ef0f.6.azurestaticapps.net/"
+WEBSITE_HOSTNAME = os.getenv("WEBSITE_HOSTNAME")
 SECRET_KEY = os.getenv("MY_SECRET_KEY") 
 
 # Validate required variables
-if not CLIENT_URL:
-    raise ValueError("CLIENT_URL environment variable is missing! Check Azure App Settings.")
+if not WEBSITE_HOSTNAME:
+    raise ValueError("WEBSITE_HOSTNAME environment variable is missing! Check Azure App Settings.")
 if not SECRET_KEY:
     raise ValueError("MY_SECRET_KEY environment variable is missing! Check Azure App Settings.")
 
-ALLOWED_HOSTS = [CLIENT_URL]
-CSRF_TRUSTED_ORIGINS = [f'https://{CLIENT_URL}']
+ALLOWED_HOSTS = [WEBSITE_HOSTNAME]
+CSRF_TRUSTED_ORIGINS = ['https://purple-river-00fd8ef0f.6.azurestaticapps.net/']
 DEBUG = False
 
 MIDDLEWARE = [
