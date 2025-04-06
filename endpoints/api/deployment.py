@@ -23,7 +23,7 @@ if not SECRET_KEY:
     raise ValueError("MY_SECRET_KEY environment variable is missing! Check Azure App Settings.")
 
 ALLOWED_HOSTS = [WEBSITE_HOSTNAME]
-CSRF_TRUSTED_ORIGINS = ['https://purple-river-00fd8ef0f.6.azurestaticapps.net/']
+CSRF_TRUSTED_ORIGINS = ['https://purple-river-00fd8ef0f.6.azurestaticapps.net']
 DEBUG = False
 
 MIDDLEWARE = [
@@ -38,8 +38,19 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = ["https://purple-river-00fd8ef0f.6.azurestaticapps.net/"]
-
+CORS_ALLOWED_ORIGINS = ["https://purple-river-00fd8ef0f.6.azurestaticapps.net"]
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+]
 
 STORAGES = {
     "default": {
