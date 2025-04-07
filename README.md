@@ -7,6 +7,7 @@ This is an Agentic AI application that uses a CNN model for skin disease classif
 #### Application UI/UX link
 
 [https://www.dermartology@nestlink.org](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)
+![.](endpoints/ai-hack-img/ui.png)
 
 #### Application endpoint link
 
@@ -73,6 +74,8 @@ DATABASE_PASSWORD=db_password
 # Project Workflow
 
 ## The Autonomous Agentic System
+
+![worfkflow diagram](endpoints/ai-hack-img/workflow.jpeg)
 
 - Routing
 - Prompt Chaining
