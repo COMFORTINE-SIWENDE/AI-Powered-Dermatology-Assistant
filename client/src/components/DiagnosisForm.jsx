@@ -76,7 +76,7 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
         ? "http://localhost:8081/api/medical-assistant/"
         : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
       const response = await axios.post(
-        `${baseUrl}/api/medical-assistant/`,
+        `${baseUrl}`,
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
