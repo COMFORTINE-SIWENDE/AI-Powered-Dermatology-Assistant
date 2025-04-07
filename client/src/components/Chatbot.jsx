@@ -4,7 +4,12 @@ import { Loader, Bot, User, Sparkles, ImageIcon, Send } from "lucide-react";
 import { Globalstate } from "../context/Globalcontext";
 
 const Chatbot = ({ sessionId, diagnosis }) => {
-  const { setImage } = useContext(Globalstate);
+  const {
+    setImage,
+    screenSize: { WIDTH, HEIGHT },
+  } = useContext(Globalstate);
+  console.log("WIDTH:", WIDTH, "HEIGHT:", HEIGHT);
+
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -216,7 +221,11 @@ const Chatbot = ({ sessionId, diagnosis }) => {
   };
 
   return (
-    <div className="flex flex-col h-[87%] mt-4 max-w-md mx-auto bg-white rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden ">
+    <div
+      className={`flex flex-col  ${
+        WIDTH <= 1164 ? "h-[50rem]" : "h-[87%]"
+      } mt-4 w-full max-w-6xl mx-auto bg-white rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden `}
+    >
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center">
         <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center mr-3">

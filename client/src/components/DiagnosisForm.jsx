@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
-import { azure, BGlogo, fabric, Upload } from "../assets";
+import { Upload } from "../assets";
 import {
   FiUpload,
   FiInfo,
@@ -9,38 +9,21 @@ import {
   FiShield,
 } from "react-icons/fi";
 import { Globalstate } from "../context/Globalcontext";
-
-const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
-  const [displayedText, setDisplayedText] = useState("");
-  const [index, setIndex] = useState(0);
-
-  useEffect(() => {
-    if (index < text.length) {
-      const timeout = setTimeout(() => {
-        setDisplayedText((prev) => prev + text[index]);
-        setIndex(index + 1);
-      }, speed);
-      return () => clearTimeout(timeout);
-    } else {
-      setTimeout(() => {
-        setDisplayedText(text[0]);
-        setIndex(1);
-      }, delay);
-    }
-  }, [index, text, speed, onComplete]);
-
-  return <span>{displayedText}</span>;
-};
+import Leftsection from "./Leftsection";
 
 const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
-  const { image, setImage, imageURL, setImageURL } = useContext(Globalstate);
+  const {
+    image,
+    setImage,
+    imageURL,
+    setImageURL,
+    screenSize: { WIDTH, HEIGHT },
+  } = useContext(Globalstate);
   const [symptoms, setSymptoms] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showImage, setShowImage] = useState(false);
-  const [typingComplete, setTypingComplete] = useState(false);
   const fileInputRef = useRef(null);
-
   // Animation states
   const [pulse, setPulse] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -75,19 +58,15 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
       const baseUrl = isDevelopment
         ? "http://localhost:8081/api/medical-assistant/"
         : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
-      const response = await axios.post(
-        `${baseUrl}`,
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-          onUploadProgress: (progressEvent) => {
-            const progress = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
-            setUploadProgress(progress);
-          },
-        }
-      );
+      const response = await axios.post(`${baseUrl}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        onUploadProgress: (progressEvent) => {
+          const progress = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total
+          );
+          setUploadProgress(progress);
+        },
+      });
 
       // Simulating processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -138,69 +117,13 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
 
   return (
     <div className="min-h-screen p-4">
-      <div className="w-full max-w-6xl bg-white rounded-2xl shadow-[0_0_10px_1px_grey] overflow-hidden grid grid-cols-1 lg:grid-cols-2 h-[90%]">
+      <div
+        className={`w-full max-w-6xl bg-white rounded-2xl shadow-[0_0_10px_1px_grey] overflow-hidden ${
+          WIDTH >= 1164 && "grid  grid-cols-2"
+        } h-[90%] `}
+      >
         {/* Left Section - Information */}
-        <div className="p-8 flex flex-col text-white mostleft">
-          <div className="mt-0">
-            <h1 className="text-4xl font-extrabold font-[Times] mb-2 bg-gradient-to-r from-black to-white w-max text-transparent bg-clip-text">
-              <TypingEffect
-                text="AI Dermatology Assistant"
-                onComplete={() => setTypingComplete(true)}
-              />
-            </h1>
-            {typingComplete && (
-              <p className="text-white font-extrabold text-[15px] ">
-                Get instant skin condition analysis powered by Azure AI
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-6">
-            <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
-              <FiShield className=" mt-1 flex-shrink-0" size={20} />
-              <div>
-                <h3 className="font-bold font-serif text-2xl">Privacy First</h3>
-                <p className=" text-sm">
-                  Your images are processed securely and never stored
-                  permanently.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm rounded-2xl">
-              <FiHeart className=" mt-1 flex-shrink-0" size={20} />
-              <div>
-                <h3 className="font-bold font-serif text-2xl">
-                  Expert Insights
-                </h3>
-                <p className=" text-sm">
-                  Our AI provides preliminary analysis based on dermatological
-                  expertise.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
-              <FiMessageSquare className=" mt-1 flex-shrink-0" size={20} />
-              <div>
-                <h3 className="font-bold font-serif text-2xl">
-                  Interactive Chat
-                </h3>
-                <p className=" text-sm">
-                  Get personalized advice and follow-up questions after
-                  diagnosis.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-12 flex justify-center items-center space-x-6 opacity-75">
-            <img src={azure} alt="Azure" className="size-30" />
-            <h1 className="font-bold text-4xl">&</h1>
-            <img src={fabric} alt="Microsoft Fabric" className="size-30" />
-          </div>
-        </div>
-
+        {WIDTH >= 1164 && <Leftsection />}
         {/* Right Section - Diagnosis Form */}
         <div className="p-8 flex flex-col mostleftr">
           <div className="relative h-64 mb-6 rounded-xl overflow-hidden border-2 border-dashed border-gray-300 bg-gray-50 flex items-center justify-center">
