@@ -357,9 +357,7 @@ class MedicalAssistantAPI(APIView):
         
         # Check for explicit non-healthcare phrases
         non_healthcare_phrases = [
-            'how are you', 'hello', 'hi', 'good morning', 'good afternoon',
-            'good evening', 'what time', 'weather', 'joke', 'funny',
-            'who are you', 'your name', 'age', 'old are you'
+            'joke','code'
         ]
         
         if any(phrase in message_lower for phrase in non_healthcare_phrases):
