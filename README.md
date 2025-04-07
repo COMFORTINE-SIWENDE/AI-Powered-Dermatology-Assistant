@@ -1,6 +1,6 @@
 # AI-Powered-Dermatology-Assistant
 
-This is an Agentic AI application that uses a CNN model for skin disease classification and provides healthcare recommendations using LangChain,Azure AI search and Azure OpenAI (GPT-4 Turbo) model to help users to self diagnose their skin disorder for better health care diagosis and early disease detection. Built with Django REST Framework, ReactJs Library, and MariaDB for seamless interaction and data management."
+This is an Agentic AI application that uses a CNN model for skin disease classification and provides healthcare recommendations using LangChain,Azure AI search and Azure OpenAI (GPT-4 Turbo) model to help users to self diagnose their skin disorder for better health care diagosis and early disease detection. Built with Django REST Framework, ReactJs Library, and PostgreSQL for seamless interaction and data management."
 
 ## UI/UX of the aplication
 
