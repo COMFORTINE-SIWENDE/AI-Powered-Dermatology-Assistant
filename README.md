@@ -14,7 +14,7 @@ Our project is an Agentic AI application that leverages a CNN-based deep learnin
 
 [https://www.dermartology@nestlink.org](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)
 
-![.](endpoints/ai-hack-img/ui.png)
+![.](endpoints/ai-hack-img/uix.png)
 
 ### 🔌 Unified AI Medical Assistant Endpoint (/api/medical-assistant)
 
@@ -25,63 +25,6 @@ Our project is an Agentic AI application that leverages a CNN-based deep learnin
 [https://endpoint@nestlink.org](https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/)
 
 ![.](endpoints/ai-hack-img/endpoint.png)
-
-## Steps on How to Clone And Run the Project
-
-#### 1. Clonning the project
-
-```bash
- git clone https://github.com/COMFORTINE-SIWENDE/AI-Powered-Dermatology-Assistant.git
-```
-
-#### 2. Create a new virtual environment and activate it. In This case root dir(dirmatology assistant)
-
-- In linux distribution
-
-```bash
-python3 -m venv venv
-. ./venv/bin/activate
-pip install -r requirements.txt
-```
-
-- In Window os
-
-```bash
-python -m venv venv
-venv\Scripts\activate
-pip install -r requirements.txt
-```
-
-- Run the Django api endpoints
-- create migrations
-
-```bash
-python manage.py makemigrations assistant
-```
-
-```bash
-cd endpoints
-python manage.py runserver 8081
-```
-
-- Install and Run React App
-
-```bash
-cd client
-npm install
-npm run dev
-```
-
-- Create a .env file within the endpoints dir and provide the following(shoul not be strings).For the database you can configure sqlite3 which is by default in django
-
-```bash
-AZURE_OPENAI_API_KEY=xxxx........
-AZURE_OPENAI_API_ENDPOINT=xxxx........
-AZURE_OPENAI_API_VERSION=.............
-AZURE_AI_SEARCH_KEY=xxxx.......
-AZURE_AI_SEARCH_ENDPOINT=xxxx....
-DATABASE_PASSWORD=db_password
-```
 
 # 🧭 Project Workflow
 
@@ -97,26 +40,26 @@ DATABASE_PASSWORD=db_password
 
 - **Contextual follow-up**:If the user asks a follow-up question (e.g., "How to treat this?"), the system chains prompts by:
 
-Retrieving the prior diagnosis from chat history (Azure PostgreSQL).
+      Retrieving the prior diagnosis from chat history (Azure PostgreSQL).
 
-Injecting it into a new GPT-4 Turbo prompt:
-"The user has psoriasis (92% confidence). Provide a concise treatment plan using data from Azure AI Search, including topical treatments and lifestyle advice."
+  Injecting it into a new GPT-35 Turbo prompt:
+  "The user has psoriasis (92% confidence). Provide a concise treatment plan using data from Azure AI Search, including topical treatments and lifestyle advice."
 
 - **Multi-modal integration**:For complex queries (e.g., "Is this contagious?"), the system combines:Image analysis results (from CNN), Medical guidelines (from Azure AI Search) and Conversational context (from chat history)
   .
 
-- Example chained prompt:
+  Example chained prompt:
   "Based on the user's psoriasis diagnosis (image-attached), explain contagion risks and prevention steps. Cite dermatology guidelines."
 
 # 🧠 Retrieval-Augmented Generation (RAG) in Medical AI
 
-**RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI (GPT-4 Turbo)** with targeted data retrieval from **Azure AI Search**.
+**RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI (GPT-35 Turbo)** with targeted data retrieval from **Azure AI Search**.
 
 ---
 
 ## ⚙️ How It Works
 
-### 1. Knowledge Retrieval
+### Knowledge Retrieval
 
 **Medical Corpus:**  
 Azure AI Search indexes trusted sources such as clinical guidelines, research papers, or drug databases.
@@ -148,7 +91,7 @@ Need details on fine-tuning retrievers or handling ambiguous queries?
 - Fabrics Warehouse
 - Fabrics Data Factory
 
-# 🧠 1. Convolution Neural Network
+# 🧠 Convolution Neural Network
 
 #### CNN Model Training with Azure Machine Learning Studio & VS Code Integration
 
@@ -184,7 +127,7 @@ Need details on fine-tuning retrievers or handling ambiguous queries?
 
 ![Connecting](endpoints/ai-hack-img/azure-vs-code-model-training.png)
 
-## 2. Training Infrastructure
+## Training Infrastructure
 
 ### Azure ML Studio GPU Clusters
 
@@ -266,7 +209,9 @@ endpoint/skin_disease.ipynb
 ### **2. Pipeline Execution:**
 
 - Used Copy Data activity with immediate transfer.
+
   ![Pipeline Execution](endpoints/ai-hack-img/data_pipeline.png)
+
 - Validated data consistency post-copy.
 
 ### **3. Key Fields Copied:**
@@ -320,7 +265,7 @@ The main table stores the results of skin disease predictions, along with additi
 
 ![Summary:](endpoints/ai-hack-img/semantic.png)
 
-# 📈 2. PowerBI Analytics and Visualization
+# 📈 PowerBI Analytics and Visualization
 
 # Dashboard Components for Skin Disease Prediction
 
@@ -338,7 +283,7 @@ The BI dashboard provides insightful visualizations to analyze skin disease pred
 
 ### 📊 **Confidence Analysis**
 
-- **Visualization**: Histogram most acurately predicted disorder.
+- **Visualization**: Funnel most acurately predicted disorder.
 - **Data**: `confidence_score` (0-100%)
 - **Insight**: Displays the distribution of prediction confidence, helping assess model reliability.
 
