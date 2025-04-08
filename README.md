@@ -26,6 +26,70 @@ Our project is an Agentic AI application that leverages a CNN-based deep learnin
 
 ![.](endpoints/ai-hack-img/endpoint.png)
 
+# Steps on How to Clone And Run the Project
+
+### 1. Clonning the project
+
+```bash
+ git clone https://github.com/COMFORTINE-SIWENDE/AI-Powered-Dermatology-Assistant.git
+```
+
+### 2. Navigate to root dir, Create a new virtual environment and activate it
+
+- **In linux distribution**
+
+```bash
+python3 -m venv venv
+cd venv
+Source venv/bin/activate
+pip install -r requirements.txt
+```
+
+- **In Window os**
+
+```bash
+python -m venv venv
+cd venv
+\Scripts\activate
+pip install -r requirements.txt
+```
+
+- **create migrations and migrate**
+
+```bash
+python manage.py makemigrations assistant
+```
+
+```bash
+python manage.py migrate
+```
+
+- **Run React App in new terminal**
+
+```bash
+cd client
+npm run dev
+```
+
+- Create a .env file within the endpoints dir and provide the following(shoul not be strings).For the database you can configure sqlite3 which is by default in django.
+- Modify your dabase settings to use your preferred database in settings.py
+
+```bash
+AZURE_OPENAI_API_KEY=xxxx........
+AZURE_OPENAI_API_ENDPOINT=xxxx........
+AZURE_OPENAI_API_VERSION=.............
+AZURE_AI_SEARCH_KEY=xxxx.......
+AZURE_AI_SEARCH_ENDPOINT=xxxx....
+DATABASE_PASSWORD=your_db_password
+```
+
+- **Run the Django api endpoints in another terminal**
+
+```bash
+cd endpoints
+python manage.py runserver 8000
+```
+
 # 🧭 Project Workflow
 
 ## 🪄 The Autonomous Agentic System Design
