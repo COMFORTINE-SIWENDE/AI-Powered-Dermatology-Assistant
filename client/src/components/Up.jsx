@@ -36,7 +36,7 @@ const Up = () => {
   return (
     <div className="my-8 p-8 flex flex-col text-white mostleft">
       <div className="mt-0">
-        <h1 className="text-4xl font-extrabold font-[Times] mb-2 bg-gradient-to-r from-black to-white w-max text-transparent bg-clip-text">
+        <h1 className="text-[2.5em] font-extrabold font-[Times] mb-2 bg-gradient-to-r from-green-500 to-white w-max text-transparent bg-clip-text">
           <TypingEffect
             text="AI Dermatology Assistant"
             onComplete={() => setTypingComplete(true)}
@@ -60,7 +60,7 @@ const Up = () => {
           </div>
         </div>
 
-        <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm rounded-2xl">
+        <div className="flex items-start space-x-4 text-indigo-50 border-1 p-2 backdrop-blur-sm rounded-2xl">
           <FiHeart className=" mt-1 flex-shrink-0" size={20} />
           <div>
             <h3 className="font-bold font-serif text-2xl">Expert Insights</h3>
@@ -71,7 +71,7 @@ const Up = () => {
           </div>
         </div>
 
-        <div className="flex space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
+        <div className="flex space-x-4 text-gray-700 border-1 p-2 backdrop-blur-sm  rounded-2xl">
           <FiMessageSquare className=" mt-1 flex-shrink-0" size={20} />
           <div>
             <h3 className="font-bold font-serif text-2xl">Interactive Chat</h3>

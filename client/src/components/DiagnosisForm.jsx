@@ -1,13 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import axios from "axios";
 import { Upload } from "../assets";
-import {
-  FiUpload,
-  FiInfo,
-  FiMessageSquare,
-  FiHeart,
-  FiShield,
-} from "react-icons/fi";
+import { FiInfo } from "react-icons/fi";
 import { Globalstate } from "../context/Globalcontext";
 import Leftsection from "./Leftsection";
 
@@ -17,7 +11,8 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
     setImage,
     imageURL,
     setImageURL,
-    screenSize: { WIDTH, HEIGHT },
+    screenSize: { WIDTH },
+    viewRef,
   } = useContext(Globalstate);
   const [symptoms, setSymptoms] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +49,6 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
 
     try {
       const isDevelopment = import.meta.env.MODE === "development";
-      console.log(isDevelopment);
       const baseUrl = isDevelopment
         ? "http://localhost:8081/api/medical-assistant/"
         : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
@@ -64,12 +58,15 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           const progress = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
           );
+
           setUploadProgress(progress);
         },
       });
 
       // Simulating processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
+      WIDTH <= 815 && viewRef.current?.scrollIntoView({ behavior: "smooth" });
+
       const processedResponse = {
         ...response.data,
         confidence_score: Math.round(
@@ -82,9 +79,6 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
         suggested_actions: response.data.suggested_actions || [],
       };
       onDiagnosis(processedResponse);
-      // console.log(response.data);
-      console.log("Raw API response:", response.data);
-      console.log("Processed diagnosis:", processedResponse);
     } catch (error) {
       console.error("Diagnosis error:", error);
       setError(
@@ -116,9 +110,9 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
   };
 
   return (
-    <div className="min-h-screen p-4">
+    <div className="min-h-screen p-4 w-full">
       <div
-        className={`w-full max-w-6xl bg-white rounded-2xl shadow-[0_0_10px_1px_grey] overflow-hidden ${
+        className={`w-full  bg-white rounded-2xl shadow-[0_0_10px_1px_grey] overflow-hidden ${
           WIDTH >= 1164 && "grid  grid-cols-2"
         } h-[90%] `}
       >
@@ -139,17 +133,22 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
                 <button
                   type="button"
                   onClick={() => setShowImage(!showImage)}
-                  className="z-10 absolute bottom-2 right-2 bg-[#7096ff] px-3 py-1 rounded-[5px] shadow-sm hover:bg-[blue] transition-colors text-white font-bold transform-stroke ring-2 ring-white"
+                  className={`${
+                    WIDTH <= 500 ? "text-[15px]" : "text-lg"
+                  } z-10 absolute bottom-2 right-2 bg-[#7096ff] px-3 py-1 rounded-[5px] shadow-sm hover:bg-[blue] transition-colors text-white font-bold transform-stroke ring-2 ring-white`}
                 >
                   {showImage ? "Hide Image" : "Show Image"}
                 </button>
+
                 {imageURL && (
                   <button
                     type="button"
                     onClick={() => setImageURL(false)}
-                    className="z-10 absolute bottom-2 right-[9em] bg-[#7096ff] px-3 py-1 rounded-[5px] shadow-sm hover:bg-[blue] transition-colors text-white font-bold transform-stroke ring-2 ring-white"
+                    className={`${
+                      WIDTH <= 500 ? "text-[15px]" : "text-lg"
+                    } z-10 absolute bottom-2 right-[9em] bg-[#7096ff]  px-3 py-1 rounded-[5px] shadow-sm hover:bg-[blue] transition-colors text-white font-bold transform-stroke ring-2 ring-white`}
                   >
-                    Upload Image
+                    {WIDTH <= 500 ? "Upload" : "Upload Image"}
                   </button>
                 )}
               </div>

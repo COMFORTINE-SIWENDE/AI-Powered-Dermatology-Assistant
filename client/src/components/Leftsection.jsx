@@ -21,9 +21,7 @@ const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
     }
   }, [index, text, speed, onComplete]);
 
-  return (
-    <span className={`lg:text-[.8em] sm:text-[.5em]`}>{displayedText}</span>
-  );
+  return <span className={`text-[1.5em]`}>{displayedText}</span>;
 };
 
 const Leftsection = () => {
@@ -32,7 +30,7 @@ const Leftsection = () => {
   return (
     <div className="p-8 flex flex-col text-white mostleft">
       <div className="mt-0">
-        <h1 className="text-4xl font-extrabold font-[Times] mb-2 bg-gradient-to-r from-black to-white w-max text-transparent bg-clip-text">
+        <h1 className=" font-extrabold font-[Times] mb-2 bg-gradient-to-r from-green-500 to-white w-max text-transparent bg-clip-text">
           <TypingEffect
             text="AI Dermatology Assistant"
             onComplete={() => setTypingComplete(true)}

@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useRef, useState } from "react";
 
 export const Globalstate = createContext(null);
 
@@ -23,6 +23,8 @@ function Globalcontext({ children }) {
       window.removeEventListener("resize", dimention);
     };
   }, []);
+  const viewRef = useRef(null);
+
   return (
     <Globalstate
       value={{
@@ -32,6 +34,7 @@ function Globalcontext({ children }) {
         setImageURL,
         screenSize,
         setscreenSize,
+        viewRef,
       }}
     >
       {children}

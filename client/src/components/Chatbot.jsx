@@ -6,9 +6,9 @@ import { Globalstate } from "../context/Globalcontext";
 const Chatbot = ({ sessionId, diagnosis }) => {
   const {
     setImage,
-    screenSize: { WIDTH, HEIGHT },
+    screenSize: { WIDTH },
+    viewRef,
   } = useContext(Globalstate);
-  console.log("WIDTH:", WIDTH, "HEIGHT:", HEIGHT);
 
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState([
@@ -140,7 +140,6 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       ]);
       // Call API
       const isDevelopment = import.meta.env.MODE === "development";
-      console.log(isDevelopment);
       const baseUrl = isDevelopment
         ? "http://localhost:8081/api/medical-assistant/"
         : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
@@ -222,9 +221,10 @@ const Chatbot = ({ sessionId, diagnosis }) => {
 
   return (
     <div
+      ref={viewRef}
       className={`flex flex-col  ${
-        WIDTH <= 1164 ? "h-[50rem]" : "h-[87%]"
-      } mt-4 w-full max-w-6xl mx-auto bg-white rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden `}
+        WIDTH <= 1164 ? "h-[49.5rem]" : "h-[87%]"
+      } mt-4 w-full mx-auto rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden `}
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center">
@@ -337,55 +337,62 @@ const Chatbot = ({ sessionId, diagnosis }) => {
         </div>
       </div>
       {/* Input area */}
+
       <form
         onSubmit={handleSubmit}
-        className="p-3 border-t border-gray-200 bg-white"
+        className="p-2  border-t border-gray-200 w-full "
       >
-        <div className="flex items-center">
-          <button
-            type="button"
-            className="p-2 rounded-full text-gray-500 hover:bg-gray-100 mr-1"
-            title="Upload image"
-          >
-            <ImageIcon
-              className="cursor-pointer"
-              onClick={HandleUpload}
-              size={18}
-            />
+        <div className="grid grid-cols-[.7fr_8fr_1fr] h-full gap-2">
+          <div className="flex justify-center items-center">
+            {" "}
+            <button
+              type="button"
+              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 "
+              title="Upload image"
+            >
+              <ImageIcon
+                className="cursor-pointer"
+                onClick={HandleUpload}
+                size={18}
+              />
+              <input
+                ref={uploadRef}
+                type="file"
+                onChange={(e) => setImage(e.target.files[0])}
+                className="hidden"
+                accept="image/*"
+                capture="environment"
+              />
+            </button>
+          </div>
+          <div className="flex justify-center items-center">
             <input
-              ref={uploadRef}
-              type="file"
-              onChange={(e) => setImage(e.target.files[0])}
-              className="hidden"
-              accept="image/*"
-              capture="environment"
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              className="flex-1 px-4 py-2 bg-gray-100 rounded-full w-full outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Type your question..."
+              disabled={isLoading || isTyping}
             />
-          </button>
-
-          <input
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            className="flex-1 px-4 py-2 bg-gray-100 rounded-full outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Type your question..."
-            disabled={isLoading || isTyping}
-          />
-
-          <button
-            type="submit"
-            disabled={isLoading || isTyping || inputValue.trim() === ""}
-            className={`ml-2 p-2 rounded-full ${
-              isLoading || isTyping || inputValue.trim() === ""
-                ? "text-gray-400"
-                : "text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
-            }`}
-          >
-            {isLoading ? (
-              <Loader className="animate-spin" size={18} />
-            ) : (
-              <Send size={18} />
-            )}
-          </button>
+          </div>
+          <div className="flex justify-center items-center">
+            {" "}
+            <button
+              type="submit"
+              disabled={isLoading || isTyping || inputValue.trim() === ""}
+              className={`p-2 rounded-full ${
+                isLoading || isTyping || inputValue.trim() === ""
+                  ? "text-gray-400"
+                  : "text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
+              }`}
+            >
+              {isLoading ? (
+                <Loader className="animate-spin" size={18} />
+              ) : (
+                <Send size={18} />
+              )}
+            </button>
+          </div>
         </div>
       </form>
 
