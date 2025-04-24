@@ -62,7 +62,6 @@ const DiagnosisForm = ({ onDiagnosis, sessionId }) => {
           setUploadProgress(progress);
         },
       });
-
       // Simulating processing delay
       await new Promise((resolve) => setTimeout(resolve, 1500));
       WIDTH <= 815 && viewRef.current?.scrollIntoView({ behavior: "smooth" });

@@ -115,7 +115,7 @@ python manage.py runserver 8000
   Example chained prompt:
   "Based on the user's psoriasis diagnosis (image-attached), explain contagion risks and prevention steps. Cite dermatology guidelines."
 
-# 🧠 Retrieval-Augmented Generation (RAG) in Medical AI
+# 🧠 Retrieval-Augmented Generation
 
 **RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI (GPT-35 Turbo)** with targeted data retrieval from **Azure AI Search**.
 
@@ -227,141 +227,70 @@ endpoint/skin_disease.ipynb
 
 # Data Pipeline & Analytics Workflow in Fabrics
 
-![Summary:](endpoints/ai-hack-img/fabrics_wkflow.png)
+## 🧩 Components Overview
 
-# Data Warehousing in OneLake 🌊
+- **Lakehouse:** `dma_lakehouse` For storing data from REST api in delta tables
+- **Eventstream:** For handling real-time data ingestion from the REST API.
+- **PySpark Notebook:** For Processesing and transforming data for analysis.
+- **Semantic Model:** For structuring the data for business intelligence.
+- **Power BI Dashboard:** Visualizing insights and trends.
 
-## Structure:
+## 🌐 End-to-End Real-Time Data Pipeline in Microsoft Fabric
 
-![](endpoints/ai-hack-img/onelake.png)
+## 1. 🛠️ REST API Integration
 
-### **Workspace:**
+- **Source**:Dermatology RESTful API providing JSON-formatted data related to skin disease predictions.
 
-- General Dermatology
+- **Data**: Includes session IDs, request types, timestamps, diagnosis details, conversation history, suggested actions, and status.
 
-### **Warehouses:**
+## 2. ⚡ Eventstream Setup
 
-- Dermatology warehouse
-- Dataflow+Staging+Warehouse
+- **Source:** Connected to the REST API endpoint.
+- **Destination:** Configured to route data to the `dma_lakehouse`.
+- **Transformation:** Utilized Eventstream's capabilities to filter and transform incoming data before storage in lakehouse delta tables
+  ![](endpoints/ai-hack-img/en-stream.png)
+  ![](endpoints/ai-hack-img/en-data.png)
 
-### **Semantic Models:**
+## 3. 🏞️ Lakehouse Storage
 
-- aid semantic (owner: Comfortine Swende)
-- Dermatology warehouse rl
+- Purpose: Served as the centralized repository for structured and unstructured data.
 
-### **Refresh Schedule:**
+- Integration: Data from Eventstream is stored in Delta Lake format within the Lakehouse, enabling efficient querying and processing.
+  ![Summary:](endpoints/ai-hack-img/en-lkh.png)
 
-- Semantic models refreshed 4-6x daily (e.g., 4/7/25, 8:47:07 PM).
+## 4. 🧪 Data Processing with PySpark
 
-#
+Notebook: Developed a PySpark notebook to process and analyze the ingested data.
 
-# 🧬 Data Ingestion with Azure PostgreSQL & Fabric Data Factory
+Schema Definition: Defined a structured schema to parse complex JSON data accurately.
 
-## Tools Used:
+Transformations:
 
-- **Source**: public.assistant_skindiseaseprediction table in our Azure PostgreSQL (dermatology.db.postgres.databases.azure.com)
-- **Destination**: Fabric OneLake Warehouse
+- Extracted relevant fields from nested JSON structures.
+- Converted timestamps and calculated additional metrics as needed.
+  ![](endpoints/ai-hack-img/pyspark.png)
 
-## Steps (via Copy_kk7 Pipeline):
+## 5. 📚 Semantic Model Creation
 
-### **1. Connection Setup:**
+Model: Built the `dermatology semantic` - Model to structure data for analysis.
 
-- Linked PostgreSQL as the source and OneLake Warehouse as the destination.
-  ![Connection Setup](endpoints/ai-hack-img/azure_postgresql_fabrics.png)
-- Configured table mapping for `assistant_skindiseaseprediction`.
+Features:
 
-### **2. Pipeline Execution:**
+- Organized data into meaningful entities and relationships.
+- Defined measures and calculated columns for insights.
 
-- Used Copy Data activity with immediate transfer.
+![Summary:](endpoints/ai-hack-img/en-semantic.png)
 
-  ![Pipeline Execution](endpoints/ai-hack-img/data_pipeline.png)
+## 6. 📈 PowerBI Analytics and Visualization
 
-- Validated data consistency post-copy.
+Dashboard: Developed an interactive Power BI dashboard to visualize predictions and trends.
 
-### **3. Key Fields Copied:**
+Components:
 
-```plaintext
-id | user_id | predicted_disease | confidence_score | symptoms | image |
-created_at
-```
+- **Disease Distribution:** Donut chart showing frequency of predicted diseases.
+- **Confidence Analysis:** Funnel chart displaying prediction confidence levels.
+- **Time Series Trends:** Line graph illustrating prediction trends over time.
 
-| Data Source      | Pipeline               | Data Destination      |
-| ---------------- | ---------------------- | --------------------- |
-| Azure PostgreSQL | Copy pipeline Activity | Dermatology warehouse |
+Deployment: Published to Power BI Service with OneLake integration for real-time data updates.
 
-## 📚 Semantic Model
-
-# 🎯 **Aid Semantic - Skin Disease Prediction Model**
-
-## 🚀 **Overview**
-
-We developed **Aid Semantic**, an AI-driven model designed to predict skin diseases based on user-provided skin images and symptoms. The dashboard visualizes insights from the model’s predictions, offering disease distribution, confidence analysis, and time trends. Then we deployed it to **Power BI Service** via **OneLake** integration, ensuring up-to-date visualizations with automatic data refresh.
-
-## 📊 **Database Schema**
-
-### **Main Table: `assistant_skindiseaseprediction`**
-
-The main table stores the results of skin disease predictions, along with additional user-reported symptoms and images.
-
-#### **Key Columns:**
-
-| Column Name         | Data Type     | Description                                                      |
-| ------------------- | ------------- | ---------------------------------------------------------------- |
-| `predicted_disease` | STRING        | The disease predicted by the model (e.g., "Psoriasis", "Eczema") |
-| `confidence_score`  | FLOAT         | The model's confidence in its prediction (percentage value)      |
-| `symptoms`          | TEXT          | User-reported symptoms (e.g., "itchy, red patches")              |
-| `image`             | TEXT (Base64) | Base64-encoded skin photo submitted by the user                  |
-
----
-
-## 🧮 **Calculations & Metrics**
-
-### **Measures:**
-
-- **Total Cases**: The total number of skin disease prediction cases stored in the database.
-- **Average Confidence Score**: The average confidence percentage of all predictions made by the model.
-
-### **Time Intelligence:**
-
-- **Cases by time of creation**: The number of skin disease prediction cases grouped by time (`created_at`). This allows us to view trend analysis over time.
-
----
-
-![Summary:](endpoints/ai-hack-img/semantic.png)
-
-# 📈 PowerBI Analytics and Visualization
-
-# Dashboard Components for Skin Disease Prediction
-
-## Overview
-
-The BI dashboard provides insightful visualizations to analyze skin disease predictions. It includes disease distribution, confidence analysis, and time trends, with auto-refreshing data published to Power BI Service via OneLake integration.
-
-## Dashboard Components
-
-### 🦠 **Disease Distribution**
-
-- **Visualization**: Donut chart showing the frequency of each predicted disease.
-- **Data**: `predicted_disease`
-- **Insight**: Identifies the most common predicted diseases.
-
-### 📊 **Confidence Analysis**
-
-- **Visualization**: Funnel most acurately predicted disorder.
-- **Data**: `confidence_score` (0-100%)
-- **Insight**: Displays the distribution of prediction confidence, helping assess model reliability.
-
-### 📅 **Time Series Trends**
-
-- **Visualization**: Line graph showing the number of predictions over time.
-- **Data**: `created_at` (timestamp)
-- **Insight**: Tracks trends in skin disease predictions over time.
-
-## Deployment
-
-- **Power BI Service**: Dashboard published via OneLake integration.
-- **Auto-refresh**: Semantic models in Fabric auto-refresh 4-6 times daily, ensuring up-to-date data.
-
-  **Refresh Schedule**: Updated 4-6x daily i.e 4/7/25, 8:47:07 PM).
-
-![Summary:](endpoints/ai-hack-img/bi_dashboard.png)
+![](endpoints/ai-hack-img/bi.png)

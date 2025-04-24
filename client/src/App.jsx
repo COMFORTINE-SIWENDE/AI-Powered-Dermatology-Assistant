@@ -12,7 +12,6 @@ const Home = () => {
   const {
     screenSize: { WIDTH },
   } = useContext(Globalstate);
-  console.log(WIDTH);
 
   const [diagnosis, setDiagnosis] = useState(null);
   const [sessionId, setSessionId] = useState("");

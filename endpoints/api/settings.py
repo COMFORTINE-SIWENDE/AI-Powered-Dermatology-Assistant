@@ -8,6 +8,11 @@ AZURE_OPENAI_API_ENDPOINT = os.getenv("AZURE_OPENAI_API_ENDPOINT")
 # access to azure AI search
 AZURE_AI_SEARCH_API=os.getenv("AZURE_AI_SEARCH_API")
 AZURE_AI_SEARCH_ENDPOINT=os.getenv("AZURE_AI_SEARCH_ENDPOINT")
+# eventstream
+BOOTSTRAP_SERVER=os.getenv("BOOTSTRAP_SERVER")
+SASL_USERNAME=os.getenv("SASL_USERNAME")
+TOPIC=os.getenv("TOPIC")
+SASL_PASSWORD=os.getenv("")
 
 
 
@@ -22,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-#&l2y6hf120%d^@b-h%%=y^ghzy2-f_40x$$d_vxvyr#&6d0mg'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 

@@ -163,6 +163,7 @@ const Chatbot = ({ sessionId, diagnosis }) => {
         suggested_actions || [],
         "text"
       );
+      console.log(response.data);
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages((prev) => {

@@ -28,6 +28,7 @@ from langchain_core.runnables.history import RunnableWithMessageHistory,BaseChat
 from langchain_openai import AzureChatOpenAI
 from langchain.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.messages import SystemMessage
+from datetime import datetime
 
 # # Configure Azure OpenAI
 api_key = settings.AZURE_OPENAI_API_KEY
@@ -218,6 +219,8 @@ class MedicalAssistantAPI(APIView):
                                 "find_specialist"
                             ]
                         })
+                        self.send_to_kafka(response_data['diagnosis'])
+                        print(response_data['diagnosis'])                        
                         return Response(response_data, status=status.HTTP_200_OK)
                     
                     analysis = self.generate_chatbot_response(
@@ -294,7 +297,9 @@ class MedicalAssistantAPI(APIView):
                         {"error": f"Chat processing failed: {str(e)}"},
                         status=status.HTTP_400_BAD_REQUEST
                     )
+            self.send_to_kafka(response_data['diagnosis'])
 
+            print(response_data['diagnosis'])
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
@@ -573,4 +578,45 @@ class MedicalAssistantAPI(APIView):
                 )
         except Exception as e:
             print(f"Failed to save interaction: {str(e)}")
-       
+
+    # KAFKA FABRICS
+    def send_to_kafka(self, data):
+        print(f"DATA: {data}")
+        """Send data to Microsoft Fabric Event Stream"""
+        from confluent_kafka import Producer
+        import json
+        from uuid import UUID
+        class UUIDEncoder(json.JSONEncoder):
+            def default(self, obj):
+                if isinstance(obj, UUID):
+                    return str(obj)  # Convert UUID to string
+                return super().default(obj)
+            
+        bootstrap_servers=settings.BOOTSTRAP_SERVER
+        sasl_username=settings.SASL_USERNAME
+        sasl_password=settings.SASL_PASSWORD
+        topic="es_4eac4ca9-c29c-4827-9fca-f3546d66bc98"
+
+
+
+        conf = {
+            "bootstrap.servers": "esehdbkf53knxxl8jlyy54.servicebus.windows.net:9093",
+            "security.protocol": "SASL_SSL",
+            "sasl.mechanisms": "PLAIN",
+            "sasl.username": "$ConnectionString",
+            "sasl.password": "Endpoint=sb://esehdbkf53knxxl8jlyy54.servicebus.windows.net/;SharedAccessKeyName=key_bece763f-7093-45f8-84c1-4ec5cc9bb760;SharedAccessKey=7KkEB4c9Vrqu97/9WWp/S/Wg8/czH34dn+AEhEqdmmo=;EntityPath=es_4eac4ca9-c29c-4827-9fca-f3546d66bc98"
+        }
+
+        try:
+            # Normalize before sending
+          
+            producer = Producer(conf)
+            producer.produce(
+                topic,
+                json.dumps(data,cls=UUIDEncoder),
+                callback=lambda err, msg: print(f"Kafka Error: {err}" if err else "")
+            )
+            producer.flush()
+            print("Data sent to fabrics.")
+        except Exception as e:
+            print(f"Kafka failed: {str(e)}")
