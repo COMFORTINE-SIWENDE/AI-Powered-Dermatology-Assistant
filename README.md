@@ -229,8 +229,7 @@ endpoint/skin_disease.ipynb
 - **Source:** Connected to the REST API endpoint.
 - **Destination:** Configured to route data to the `dma_lakehouse`.
 - **Transformation:** Utilized Eventstream's capabilities to filter and transform incoming data before storage in lakehouse delta tables
-  ![](endpoints/ai-hack-img/en-stream.png)
-  ![](endpoints/ai-hack-img/en-data.png)
+
 
 
 ## In End, its all about Shared responsibilities between Doctors and Agentic AI as this increases coroboration. We don't believe in **AI replacing jobs!!!**
