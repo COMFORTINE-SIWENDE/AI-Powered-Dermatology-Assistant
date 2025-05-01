@@ -1,7 +1,7 @@
 from django.contrib import admin
-from .models import User,UserDiseaseHistory,ChatHistory,SkinDiseasePrediction,ConversationSession,Dermatologist
+from .models import User,ChatHistory,SkinDiseasePrediction,ConversationSession,Dermatologist
 admin.site.register(User)
-admin.site.register(UserDiseaseHistory)
+
 admin.site.register(ChatHistory)
 admin.site.register(SkinDiseasePrediction)
 admin.site.register(ConversationSession)

@@ -1,7 +1,7 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiHeart, FiMessageSquare, FiShield } from "react-icons/fi";
-import { azure, fabric } from "../assets";
-import { Globalstate } from "../context/Globalcontext";
+import { azure, aifoundry } from "../assets";
+import { useGlobalState } from "../context/Globalcontext";
 
 const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -20,7 +20,7 @@ const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
         setIndex(1);
       }, delay);
     }
-  }, [index, text, speed, onComplete]);
+  }, [index, text, speed, delay, onComplete]);
 
   return (
     <span className={`lg:text-[.8em] max-sm:text-[.7em]`}>{displayedText}</span>
@@ -28,9 +28,7 @@ const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
 };
 
 const Up = () => {
-  const {
-    screenSize: { WIDTH },
-  } = useContext(Globalstate);
+  const { state } = useGlobalState();
   const [typingComplete, setTypingComplete] = useState(false);
 
   return (
@@ -43,39 +41,39 @@ const Up = () => {
           />
         </h1>
         {typingComplete && (
-          <p className="text-white font-extrabold text-[15px] ">
+          <p className="text-white font-extrabold text-[15px]">
             Get instant skin condition analysis powered by Azure AI
           </p>
         )}
       </div>
 
-      <div className={`flex gap-3 ${WIDTH <= 815 && "flex-col"}`}>
-        <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm  rounded-2xl">
-          <FiShield className=" mt-1 flex-shrink-0" size={20} />
+      <div className={`flex gap-3 ${state.screenWidth <= 815 && "flex-col"}`}>
+        <div className="flex items-start space-x-4 text-white border-1 p-2 backdrop-blur-sm rounded-2xl">
+          <FiShield className="mt-1 flex-shrink-0" size={20} />
           <div>
             <h3 className="font-bold font-serif text-2xl">Privacy First</h3>
-            <p className=" text-sm">
+            <p className="text-sm">
               Your images are processed securely and never stored permanently.
             </p>
           </div>
         </div>
 
         <div className="flex items-start space-x-4 text-indigo-50 border-1 p-2 backdrop-blur-sm rounded-2xl">
-          <FiHeart className=" mt-1 flex-shrink-0" size={20} />
+          <FiHeart className="mt-1 flex-shrink-0" size={20} />
           <div>
             <h3 className="font-bold font-serif text-2xl">Expert Insights</h3>
-            <p className=" text-sm">
+            <p className="text-sm">
               Our AI provides preliminary analysis based on dermatological
               expertise.
             </p>
           </div>
         </div>
 
-        <div className="flex space-x-4 text-gray-700 border-1 p-2 backdrop-blur-sm  rounded-2xl">
-          <FiMessageSquare className=" mt-1 flex-shrink-0" size={20} />
+        <div className="flex space-x-4 text-gray-700 border-1 p-2 backdrop-blur-sm rounded-2xl">
+          <FiMessageSquare className="mt-1 flex-shrink-0" size={20} />
           <div>
             <h3 className="font-bold font-serif text-2xl">Interactive Chat</h3>
-            <p className=" text-sm">
+            <p className="text-sm">
               Get personalized advice and follow-up questions after diagnosis.
             </p>
           </div>
@@ -85,7 +83,7 @@ const Up = () => {
       <div className="mt-12 flex justify-center items-center space-x-6 opacity-75">
         <img src={azure} alt="Azure" className="size-30" />
         <h1 className="font-bold text-4xl">&</h1>
-        <img src={fabric} alt="Microsoft Fabric" className="size-30" />
+        <img src={aifoundry} alt="Microsoft Fabric" className="size-30" />
       </div>
     </div>
   );

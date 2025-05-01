@@ -7,9 +7,7 @@
     font-family: 'Inter', system-ui, sans-serif;
 }
 
-@theme {
-    --font-lite: 'Tektur';
-}
+
 
 @layer components {
     .animate-fast-extended {

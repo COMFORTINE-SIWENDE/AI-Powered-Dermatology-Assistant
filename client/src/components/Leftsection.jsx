@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiHeart, FiMessageSquare, FiShield } from "react-icons/fi";
-import { azure, fabric } from "../assets";
+import { azure, aifoundry } from "../assets";
 
 const TypingEffect = ({ text, speed = 100, delay = 1000, onComplete }) => {
   const [displayedText, setDisplayedText] = useState("");
@@ -76,10 +76,10 @@ const Leftsection = () => {
         </div>
       </div>
 
-      <div className="mt-12 flex justify-center items-center space-x-6 opacity-75">
+      <div className="mt-12 flex justify-between items-center space-x-6 opacity-75">
         <img src={azure} alt="Azure" className="size-30" />
         <h1 className="font-bold text-4xl">&</h1>
-        <img src={fabric} alt="Microsoft Fabric" className="size-30" />
+        <img src={aifoundry} alt="Microsoft Fabric" className="size-40" />
       </div>
     </div>
   );

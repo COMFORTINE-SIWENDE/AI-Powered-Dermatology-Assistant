@@ -169,7 +169,8 @@ class MedicalAssistantAPI(APIView):
             "session_id": None,
             "diagnosis": None,
             "chat_response": None,
-            "suggested_actions": []
+            "suggested_actions": [],
+             "user_info": None 
         }
         try:
             # Extract and validate inputs
@@ -178,6 +179,14 @@ class MedicalAssistantAPI(APIView):
             user_id = request.data.get('user_id', f"anon_{str(uuid.uuid4())[:8]}")
             session_id = request.data.get('session_id', str(uuid.uuid4()))
             image = request.FILES.get('image')
+            user_name = data.get('user_name', 'Anonymous')
+            age = data.get('age') 
+            
+            # Store user info in response
+            response_data["user_info"] = {
+                "user_name": user_name,
+                "age": age
+            }
 
             # Handle session creation/retrieval FIRST
             try:
@@ -190,9 +199,18 @@ class MedicalAssistantAPI(APIView):
             # Get or create session object
             session, created = ConversationSession.objects.get_or_create(
                 session_id=session_uuid,
-                defaults={'user_id': user_id if not user_id.startswith('anon_') else None}
+                defaults={
+                    'user_id': user_id if not user_id.startswith('anon_') else None,
+                     'user_name': user_name,
+                    'age': age
+                          }
+                
             )
-
+            # Update existing session if user provides info later
+            if not created and (user_name != 'Anonymous' or age is not None):
+                session.user_name = user_name
+                session.age = age
+                session.save()
             response_data["session_id"] = str(session.session_id)
 
             # Process image if provided
@@ -227,7 +245,9 @@ class MedicalAssistantAPI(APIView):
                         predicted_disease=predicted_disease,
                         confidence_score=confidence_score,
                         symptoms=message,
-                        session_id=str(session.session_id)
+                        session_id=str(session.session_id),
+                        user_name=user_name, 
+                        age=age
                     )
 
                     # Create prediction with session object
@@ -238,13 +258,19 @@ class MedicalAssistantAPI(APIView):
                         predicted_disease=predicted_disease,
                         confidence_score=confidence_score,
                         chatbot_response=analysis,
-                        session=session  # Use the session object
+                        session=session,
+                        user_name=user_name,
+                        age=age
                     )
 
                     response_data["diagnosis"] = SkinDiseasePredictionSerializer(
                         prediction,
                         context={'request': request}
                     ).data
+                    response_data["diagnosis"]["user_info"] = {
+                        "user_name": user_name,
+                        "age": age
+                    }
                     response_data.update({
                         "diagnosis": SkinDiseasePredictionSerializer(
                             prediction,
@@ -271,7 +297,9 @@ class MedicalAssistantAPI(APIView):
                     chat_response = self.handle_text_input(
                         message=message or "Explain this diagnosis",
                         session_id=str(session.session_id),
-                        is_followup=bool(image)
+                        is_followup=bool(image),
+                         user_name=user_name,  
+                        age=age
                     )
 
                     # Create chat history with session object
@@ -279,7 +307,9 @@ class MedicalAssistantAPI(APIView):
                         user_id=user_id if not user_id.startswith('anon_') else None,
                         user_message=message,
                         chatbot_response=chat_response['text'],
-                        session=session,  # Use the session object
+                        session=session,  
+                        user_name=user_name,
+                        age=age,
                         metadata={
                             'sources': chat_response.get('sources'),
                             'suggested_actions': chat_response.get('suggested_actions')
@@ -290,6 +320,10 @@ class MedicalAssistantAPI(APIView):
                         chat,
                         context={'request': request}
                     ).data
+                    response_data["chat_response"]["user_info"] = {
+                        "user_name": user_name,
+                        "age": age
+                    }
                     response_data["suggested_actions"] = chat_response.get('suggested_actions', [])
 
                 except Exception as e:
@@ -370,7 +404,7 @@ class MedicalAssistantAPI(APIView):
         
         # Check for healthcare keywords
         return any(keyword in message_lower for keyword in healthcare_keywords)
-    def handle_text_input(self, message, session_id, is_followup=False):
+    def handle_text_input(self, message, session_id, is_followup=False, user_name=None, age=None):
         """Process text input with intelligent routing"""
         try:
             # Process text input with healthcare filtering
@@ -380,6 +414,11 @@ class MedicalAssistantAPI(APIView):
                         "Please ask me about skin conditions, treatments, or related medical concerns.",
                     "suggested_actions": []
                 }
+                    # Add personalization to certain query types
+            if any(keyword in message.lower() for keyword in ["treatment", "recommendation"]):
+                if user_name and user_name != 'Anonymous':
+                    message = f"For {user_name}" + (f" (age {age})" if age else "") + ": " + message
+            
             # Determine processing path
             processing_mode = self.determine_processing_mode(message, is_followup)
             
@@ -450,14 +489,20 @@ class MedicalAssistantAPI(APIView):
             print(f"Prediction error: {str(e)}")
             raise Exception("Could not process the image. Please try again with a clearer photo.")
     
-    def generate_chatbot_response(self,predicted_disease, confidence_score, symptoms, session_id):
+    def generate_chatbot_response(self,predicted_disease, confidence_score, symptoms, session_id, user_name=None, age=None):
         """Generate AI response for diagnosis"""
         try:
+            greeting = ""
+            if user_name and user_name != 'Anonymous':
+                greeting = f"Hello {user_name}. "
+                if age:
+                    greeting += f"As someone who is {age} years old, "
             prompt = f"""
+            {greeting}Here's the analysis:
             Diagnosis: {predicted_disease} ({confidence_score:.1f}% confidence)
             Symptoms: {symptoms}
             
-            As a dermatology assistant, provide:
+            As a dermatology assistant, provide(try to be brief and clear):
             1. A simple explanation of the condition
             2. Recommended self-care measures
             3. When to see a doctor

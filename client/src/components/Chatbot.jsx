@@ -1,31 +1,51 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import axios from "axios";
-import { Loader, Bot, User, Sparkles, ImageIcon, Send } from "lucide-react";
-import { Globalstate } from "../context/Globalcontext";
+import { Loader, Bot, User, Sparkles, Send } from "lucide-react";
+import { v4 as uuidv4 } from "uuid";
+import { useGlobalState } from "../context/Globalcontext";
 
-const Chatbot = ({ sessionId, diagnosis }) => {
-  const {
-    setImage,
-    screenSize: { WIDTH },
-    viewRef,
-  } = useContext(Globalstate);
-
+const Chatbot = ({ diagnosis }) => {
+  const { state, dispatch } = useGlobalState();
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      text: "Hello! I'm your dermatology assistant. How can I help you today?",
-      timestamp: new Date(),
-      isBot: true,
-      type: "text",
-      suggestedActions: [],
-    },
-  ]);
-  const [inputValue, setInputValue] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [inputValue, setInputValue] = useState("");
+  const [isConnecting, setIsConnecting] = useState(false);
   const chatContainerRef = useRef(null);
+  const thinkingMessageIdRef = useRef(null);
 
-  // Typing effect simulation
+  // Initialize with welcome message if chat is empty
+  useEffect(() => {
+    if (state.chatHistory.length === 0) {
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          id: Date.now(),
+          text: "Hello! I'm your dermatology assistant. How can I help you today?",
+          timestamp: new Date(),
+          isBot: true,
+          type: "text",
+          suggestedActions: [],
+        },
+      });
+    }
+  }, [dispatch, state.chatHistory.length]);
+
+  // Add diagnosis to chat when received
+  useEffect(() => {
+    if (diagnosis) {
+      const confidence = Math.round(diagnosis.confidence_score || 0);
+      simulateTyping(
+        diagnosis.chatbot_response || "Here's your diagnosis analysis",
+        diagnosis.suggested_actions || [],
+        "diagnosis",
+        {
+          confidence,
+          condition: diagnosis.predicted_disease || "Unknown condition",
+        }
+      );
+    }
+  }, [diagnosis]);
+
   const simulateTyping = (
     text,
     suggestedActions = [],
@@ -33,199 +53,207 @@ const Chatbot = ({ sessionId, diagnosis }) => {
     meta = {}
   ) => {
     setIsTyping(true);
-    let displayedText = "";
-    let i = 0;
+    const messageId = Date.now();
 
-    // temporary typing indicator message
-    const tempId = Date.now() + 0.5;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: tempId,
-        text: "thinking...",
+    dispatch({
+      type: "ADD_MESSAGE",
+      payload: {
+        id: messageId,
+        text: "",
         timestamp: new Date(),
         isBot: true,
         isTyping: true,
-        type: "typing-indicator",
+        type,
+        suggestedActions,
         ...meta,
       },
-    ]);
+    });
 
+    let i = 0;
     const typingInterval = setInterval(() => {
       if (i < text.length) {
-        displayedText += text.charAt(i);
-        setMessages((prev) => {
-          const updated = [...prev];
-          const typingMessage = updated.find((msg) => msg.id === tempId);
-          if (typingMessage) {
-            typingMessage.text = displayedText;
-            typingMessage.type = type;
-          }
-          return updated;
+        dispatch({
+          type: "UPDATE_MESSAGE_TEXT",
+          payload: { id: messageId, text: text.substring(0, i + 1) },
         });
         i++;
       } else {
         clearInterval(typingInterval);
         setIsTyping(false);
-        //typing indicator with final message
-        setMessages((prev) => {
-          const filtered = prev.filter((msg) => msg.id !== tempId);
-          return [
-            ...filtered,
-            {
-              id: Date.now(),
-              text,
-              timestamp: new Date(),
-              isBot: true,
-              type,
-              suggestedActions,
-              ...meta,
-            },
-          ];
+        dispatch({
+          type: "UPDATE_MESSAGE",
+          payload: { id: messageId, updates: { isTyping: false } },
         });
       }
-    }, 20); // typing speed
+    }, 30);
   };
 
-  // Adding diagnosis to chat
+  // Sync doctor messages from localStorage
   useEffect(() => {
-    if (diagnosis) {
-      const confidence =
-        typeof diagnosis.confidence_score === "number"
-          ? Math.round(diagnosis.confidence_score)
-          : 0;
+    const handleStorageChange = () => {
+      const sharedChat = JSON.parse(localStorage.getItem("sharedChat")) || [];
+      sharedChat.forEach((msg) => {
+        if (
+          !state.chatHistory.some((m) => m.id === msg.id) &&
+          msg.senderType === "doctor"
+        ) {
+          dispatch({
+            type: "ADD_MESSAGE",
+            payload: {
+              ...msg,
+              isBot: true,
+              isDoctor: true,
+            },
+          });
+        }
+      });
+    };
 
-      const diagnosisMeta = {
-        confidence: confidence,
-        condition: diagnosis.predicted_disease || "Unknown condition",
-      };
-
-      simulateTyping(
-        diagnosis.chatbot_response || "Here's your diagnosis analysis",
-        diagnosis.suggested_actions || [],
-        "diagnosis",
-        diagnosisMeta
-      );
-    }
-  }, [diagnosis]);
+    handleStorageChange();
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
+  }, [state.chatHistory]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (inputValue.trim() === "" || isLoading || isTyping) return;
 
-    // Add user message
     const newUserMessage = {
       id: Date.now(),
       text: inputValue,
       timestamp: new Date(),
       isBot: false,
       type: "text",
+      sender: "patient",
     };
-    setMessages((prev) => [...prev, newUserMessage]);
+
+    dispatch({ type: "ADD_MESSAGE", payload: newUserMessage });
     setInputValue("");
 
     try {
       setIsLoading(true);
-      const thinkingMessageId = Date.now() + 0.3;
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: thinkingMessageId,
+      thinkingMessageIdRef.current = Date.now();
+      dispatch({
+        type: "ADD_MESSAGE",
+        payload: {
+          id: thinkingMessageIdRef.current,
           text: "thinking...",
           timestamp: new Date(),
           isBot: true,
           isTyping: true,
           type: "typing-indicator",
         },
-      ]);
-      // Call API
-      const isDevelopment = import.meta.env.MODE === "development";
-      const baseUrl = isDevelopment
-        ? "http://localhost:8081/api/medical-assistant/"
-        : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
+      });
+
+      const baseUrl =
+        import.meta.env.MODE === "development"
+          ? "http://localhost:8081/api/medical-assistant/"
+          : "https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/";
 
       const response = await axios.post(
-        `${baseUrl}`,
+        baseUrl,
         {
           message: inputValue,
-          session_id: sessionId,
+          session_id: state.activeSession || uuidv4(),
         },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
-      // Removing the thinking message before adding real response
-      setMessages((prev) => prev.filter((msg) => msg.id !== thinkingMessageId));
-      // Process API response with typing effect
+
+      dispatch({
+        type: "REMOVE_MESSAGE",
+        payload: thinkingMessageIdRef.current,
+      });
       const { chat_response, suggested_actions } = response.data;
       simulateTyping(
-        chat_response.chatbot_response,
+        chat_response?.chatbot_response || "Here's what I found:",
         suggested_actions || [],
         "text"
       );
-      console.log(response.data);
     } catch (error) {
       console.error("Error sending message:", error);
-      setMessages((prev) => {
-        // Removing any typing indicators
-        const filtered = prev.filter((msg) => msg.type !== "typing-indicator");
-        return [
-          ...filtered,
-          {
-            id: Date.now(),
-            text: "Sorry, I encountered an error. Please try again.",
-            timestamp: new Date(),
-            isBot: true,
-            type: "error",
-          },
-        ];
-      });
+      if (thinkingMessageIdRef.current) {
+        dispatch({
+          type: "REMOVE_MESSAGE",
+          payload: thinkingMessageIdRef.current,
+        });
+      }
+      simulateTyping(
+        "Sorry, I encountered an error. Please try again.",
+        [],
+        "error"
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleQuickAction = (action) => {
-    let message = "";
-    switch (action) {
-      case "alternative_treatments":
-        message = "What are some alternative treatments for my condition?";
-        break;
-      case "learn_more":
-        message = "Can you tell me more about this condition?";
-        break;
-      case "ask_specialist":
-        message = "When should I consult a specialist about this?";
-        break;
-      default:
-        message = action;
-    }
-    setInputValue(message);
+    const actionMessages = {
+      alternative_treatments:
+        "What are some alternative treatments for my condition?",
+      learn_more: "Can you tell me more about this condition?",
+      ask_specialist: "When should I consult a specialist about this?",
+    };
+    setInputValue(actionMessages[action] || action);
   };
 
-  // Auto-scroll to bottom when messages change
+  const handleDoctorRequest = () => {
+    setIsConnecting(true);
+    dispatch({ type: "UPDATE_PHYSICIAN_BUTTON", payload: "connecting" });
+
+    const doctorData = {
+      user: state.user,
+      chatHistory: state.chatHistory,
+      imageURL: state.imageURL,
+      symptoms: state.symptoms,
+      diagnosis: state.diagnosis,
+    };
+
+    dispatch({ type: "SET_DOCTOR_DATA", payload: doctorData });
+    localStorage.setItem("doctorData", JSON.stringify(doctorData));
+
+    const systemMessage = {
+      id: Date.now(),
+      text: "Connecting you to a physician...",
+      timestamp: new Date(),
+      isBot: true,
+      type: "system",
+    };
+    dispatch({ type: "ADD_MESSAGE", payload: systemMessage });
+
+    setTimeout(() => {
+      setIsConnecting(false);
+      dispatch({ type: "UPDATE_PHYSICIAN_BUTTON", payload: "connected" });
+      dispatch({
+        type: "UPDATE_MESSAGE",
+        payload: {
+          id: systemMessage.id,
+          updates: {
+            text: "You are now connected to a physician. They will review your case and respond shortly.",
+          },
+        },
+      });
+      localStorage.setItem("physicianConnected", "true");
+    }, 3000);
+  };
+
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop =
         chatContainerRef.current.scrollHeight;
     }
-  }, [messages]);
+  }, [state.chatHistory]);
 
-  // Format timestamp
-  const formatTime = (date) => {
+  const formatTime = (timestamp) => {
+    const date = timestamp instanceof Date ? timestamp : new Date(timestamp);
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  };
-  const uploadRef = useRef(null);
-  const HandleUpload = (e) => {
-    uploadRef.current.click();
   };
 
   return (
     <div
-      ref={viewRef}
-      className={`flex flex-col  ${
-        WIDTH <= 1164 ? "h-[49.5rem]" : "h-[87%]"
-      } mt-4 w-full mx-auto rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden `}
+      className={`flex flex-col ${
+        state.screenWidth <= 1164 ? "h-[49.5rem]" : "h-[87%]"
+      } mt-4 w-full mx-auto rounded-xl shadow-[0_0_10px_1px_grey] overflow-hidden relative`}
     >
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 flex items-center">
@@ -241,12 +269,9 @@ const Chatbot = ({ sessionId, diagnosis }) => {
       </div>
 
       {/* Chat messages */}
-      <div
-        ref={chatContainerRef}
-        className="flex-1 p-4 overflow-y-auto bg-gray-50"
-      >
+      <div ref={chatContainerRef} className="flex-1 p-4 overflow-y-auto">
         <div className="space-y-4">
-          {messages.map((message) => (
+          {state.chatHistory.map((message) => (
             <div
               key={message.id}
               className={`flex ${
@@ -272,7 +297,9 @@ const Chatbot = ({ sessionId, diagnosis }) => {
                 {/* Message Bubble */}
                 <div
                   className={`p-3 rounded-2xl ${
-                    message.isBot
+                    message.isDoctor
+                      ? "bg-green-100 text-gray-800 border-l-4 border-green-500"
+                      : message.isBot
                       ? "bg-white text-gray-800 border border-gray-200"
                       : "bg-gradient-to-r from-purple-600 to-blue-600 text-white"
                   } ${
@@ -281,17 +308,22 @@ const Chatbot = ({ sessionId, diagnosis }) => {
                       : ""
                   }`}
                 >
-                  {/* Diagnosis Header (only shows for diagnosis messages) */}
+                  {message.isDoctor && (
+                    <div className="flex items-center mb-1">
+                      <span className="text-xs font-semibold text-green-600">
+                        PHYSICIAN RESPONSE:
+                      </span>
+                    </div>
+                  )}
                   {message.type === "diagnosis" && (
                     <div className="flex items-center mb-2">
                       <Sparkles size={16} className="text-yellow-500 mr-1" />
                       <span className="text-xs font-semibold text-blue-600">
-                        DIAGNOSIS: {message.condition} (
-                        {Math.round(message.confidence)}% confidence)
+                        DIAGNOSIS: {message.condition} ({message.confidence}%
+                        confidence)
                       </span>
                     </div>
                   )}
-                  {/* Message Text */}
                   <p
                     className={`whitespace-pre-wrap ${
                       message.isTyping ? "blink-cursor" : ""
@@ -302,7 +334,6 @@ const Chatbot = ({ sessionId, diagnosis }) => {
                       <span className="inline-block w-2 h-4 bg-gray-400 ml-1 blink"></span>
                     )}
                   </p>
-                  {/* Timestamp */}
                   <p
                     className={`text-xs mt-1 ${
                       message.isBot ? "text-gray-500" : "text-white/70"
@@ -310,7 +341,6 @@ const Chatbot = ({ sessionId, diagnosis }) => {
                   >
                     {formatTime(message.timestamp)}
                   </p>
-                  {/* Suggested Actions (shows for diagnosis or other bot messages) */}
                   {message.suggestedActions?.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-gray-100">
                       <p className="text-xs text-gray-500 mb-1">
@@ -337,53 +367,53 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           ))}
         </div>
       </div>
-      {/* Input area */}
 
+      {/* Input area */}
       <form
         onSubmit={handleSubmit}
-        className="p-2  border-t border-gray-200 w-full "
+        className="pb-2 border-t border-white w-full bg-cyan-100 h-max flex flex-col gap-2"
       >
-        <div className="grid grid-cols-[.7fr_8fr_1fr] h-full gap-2">
-          <div className="flex justify-center items-center">
-            {" "}
-            <button
-              type="button"
-              className="p-2 rounded-full text-gray-500 hover:bg-gray-100 "
-              title="Upload image"
-            >
-              <ImageIcon
-                className="cursor-pointer"
-                onClick={HandleUpload}
-                size={18}
-              />
-              <input
-                ref={uploadRef}
-                type="file"
-                onChange={(e) => setImage(e.target.files[0])}
-                className="hidden"
-                accept="image/*"
-                capture="environment"
-              />
-            </button>
-          </div>
+        <button
+          type="button"
+          className={`font-semibold px-3 py-1 text-sm text-white flex items-center gap-2 cursor-pointer transition-colors justify-center ${
+            state.physicianButtonState === "connecting"
+              ? "bg-blue-400 animate-pulse"
+              : state.physicianButtonState === "connected"
+              ? "bg-green-500"
+              : "bg-gradient-to-r from-transparent via-blue-500 to-transparent hover:bg-blue-600"
+          }`}
+          onClick={handleDoctorRequest}
+          disabled={isConnecting || state.physicianButtonState === "connected"}
+        >
+          {state.physicianButtonState === "connecting" ? (
+            <>
+              <Loader className="animate-spin" size={16} />
+              Connecting and redirecting...
+            </>
+          ) : state.physicianButtonState === "connected" ? (
+            "Connected ✓"
+          ) : (
+            "Chat to doctor"
+          )}
+        </button>
+        <div className="grid grid-cols-[8.7fr_1fr] gap-2 w-[97%] mx-auto">
           <div className="flex justify-center items-center">
             <input
               type="text"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
-              className="flex-1 px-4 py-2 bg-gray-100 rounded-full w-full outline-none focus:ring-2 focus:ring-blue-500"
+              className="flex-1 px-4 py-2 bg-gray-50 rounded-md w-full outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Type your question..."
               disabled={isLoading || isTyping}
             />
           </div>
           <div className="flex justify-center items-center">
-            {" "}
             <button
               type="submit"
               disabled={isLoading || isTyping || inputValue.trim() === ""}
               className={`p-2 rounded-full ${
                 isLoading || isTyping || inputValue.trim() === ""
-                  ? "text-gray-400"
+                  ? "bg-gradient-to-r from-blue-500/50 to-purple-500/50 text-white"
                   : "text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600"
               }`}
             >
@@ -396,35 +426,6 @@ const Chatbot = ({ sessionId, diagnosis }) => {
           </div>
         </div>
       </form>
-
-      {/* Styles */}
-      <style jsx>{`
-        .blink {
-          animation: blink 1s infinite;
-        }
-        @keyframes blink {
-          0%,
-          100% {
-            opacity: 1;
-          }
-          50% {
-            opacity: 0;
-          }
-        }
-        .blink-cursor {
-          border-right: 2px solid transparent;
-          animation: blink-cursor 0.7s infinite;
-        }
-        @keyframes blink-cursor {
-          0%,
-          100% {
-            border-right-color: transparent;
-          }
-          50% {
-            border-right-color: currentColor;
-          }
-        }
-      `}</style>
     </div>
   );
 };
