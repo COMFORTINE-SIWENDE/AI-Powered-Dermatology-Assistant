@@ -19,6 +19,13 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 ### 🔌 Unified AI Medical Assistant Endpoint (/api/medical-assistant)
 
 - The /api/medical-assistant endpoint serves as a unified interface for both image-based skin disease diagnosis and AI-powered medical conversations. When receiving an image, it processes it through a CNN model for classification and confidence scoring, while text inputs engage Azure OpenAI GPT model and LangChain—augmented by Azure AI Search—to deliver contextual, evidence-based healthcare responses. The system intelligently routes requests based on input type and maintains persistent chat history in Azure PostgreSQL, enabling seamless continuity across sessions. Designed for efficiency,the endpoint integrates with Azure API Management for scalability and security, allowing users to transition effortlessly between uploading skin condition photos and asking follow-up questions—all within a single, cohesive interaction flow.
+### Key Functionalities
+- Skin Image Processing and disease classification
+- Context-aware chat response
+- medical information retrieval
+- Dermatologist Search
+- Session management
+- Error handling and validation
 
 #### 🔗 endpoint link
 
