@@ -232,4 +232,4 @@ endpoint/skin_disease.ipynb
 
 
 
-## In End, its all about Shared responsibilities between Doctors and Agentic AI in dermatological health-care as this increases coroboration. We don't testify to **AI replacing jobs!!!**
+## Ultimately, dermatological healthcare thrives on **shared responsibility** between medical professionals and agentic AI systems—fostering collaboration, not replacement. We're not advocating for AI to `take jobs`, but to elevate care through partnership.
