@@ -12,7 +12,7 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 
 #### 🔗 UI/UX link
 
-[https://www.dermartology@nestlink.org](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)
+[[https://www.dermartology@nestlink.org](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)
 
 ![.](endpoints/ai-hack-img/uix.png)
 
@@ -29,7 +29,7 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 
 #### 🔗 endpoint link
 
-[https://endpoint@nestlink.org](https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/)
+[[https://endpoint@nestlink.org](https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/)](https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/)
 
 ![.](endpoints/ai-hack-img/endpoint.png)
 
