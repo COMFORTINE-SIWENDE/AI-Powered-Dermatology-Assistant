@@ -105,7 +105,7 @@ python manage.py runserver 8000
 
 # 🔄 Routing
 
-- The application employs dynamic routing to seamlessly process both image-based diagnoses and text-based medical conversations through a single, unified API endpoint (/api/medical-assistant). When a request is received, the system automatically detects the input type—whether it’s an uploaded skin photo or a text query describing symptoms—and intelligently routes it to the appropriate AI model. Image inputs are analyzed by a CNN-based classifier, which generates a diagnosis along with confidence scores, while text inputs are processed by Azure OpenAI (GPT-4 Turbo) enhanced with LangChain and Azure AI Search to deliver accurate, context-aware medical responses. This streamlined approach ensures users can effortlessly transition between submitting visual diagnostics and asking follow-up questions, all within a single, intuitive interaction flow.
+- The application employs dynamic routing to seamlessly process both image-based diagnoses and text-based medical conversations through a single, unified API endpoint (/api/medical-assistant). When a request is received, the system automatically detects the input type—whether it’s an uploaded skin photo or a text query describing symptoms—and intelligently routes it to the appropriate AI model. Image inputs are analyzed by a CNN-based classifier, which generates a diagnosis along with confidence scores, while text inputs are processed by Azure OpenAI (GPT model) enhanced with LangChain and Azure AI Search to deliver accurate, context-aware medical responses. This streamlined approach ensures users can effortlessly transition between submitting visual diagnostics and asking follow-up questions, all within a single, intuitive interaction flow.
 
 # ⛓️ Prompt Chaining
 
@@ -113,7 +113,7 @@ python manage.py runserver 8000
 
       Retrieving the prior diagnosis from chat history (Azure PostgreSQL).
 
-  Injecting it into a new GPT-35 Turbo prompt:
+  Injecting it into a new GPT prompt:
   "The user has psoriasis (92% confidence). Provide a concise treatment plan using data from Azure AI Search, including topical treatments and lifestyle advice."
 
 - **Multi-modal integration**:For complex queries (e.g., "Is this contagious?"), the system combines:Image analysis results (from CNN), Medical guidelines (from Azure AI Search) and Conversational context (from chat history)
@@ -124,12 +124,8 @@ python manage.py runserver 8000
 
 # 🧠 Retrieval-Augmented Generation
 
-**RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI (GPT-35 Turbo)** with targeted data retrieval from **Azure AI Search**.
-
+**RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI GPT** with targeted data retrieval from **Azure AI Search**.
 ---
-
-## ⚙️ How It Works
-
 ### Knowledge Retrieval
 
 **Medical Corpus:**  
@@ -151,16 +147,13 @@ Need details on fine-tuning retrievers or handling ambiguous queries?
 
 - Azure Machine Learning Compute
 - Azure AI Search
-- Azure OpenAI(GPT-35 turbo model)
+- Azure OpenAI
 - Langchain
 - Tensorflow
 - Django REST
 - ReactJs
 - PostgreSQL
-- PowerBI
-- One Lake
-- Fabrics Warehouse
-- Fabrics Data Factory
+
 
 # 🧠 Convolution Neural Network
 
@@ -239,4 +232,4 @@ endpoint/skin_disease.ipynb
 
 
 
-## In End, its all about Shared responsibilities between Doctors and Agentic AI as this increases coroboration. We don't believe in **AI replacing jobs!!!**
+## In End, its all about Shared responsibilities between Doctors and Agentic AI in dermatological health-care as this increases coroboration. We don't testify to **AI replacing jobs!!!**
