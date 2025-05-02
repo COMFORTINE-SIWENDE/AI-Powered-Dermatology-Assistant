@@ -1,7 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
-
 name: Build and deploy Python app to Azure Web App - aid-dermatilogy
 
 on:
@@ -9,6 +5,10 @@ on:
     branches:
       - main
   workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.11"
+  WEBAPP_NAME: "aid-dermatilogy"
 
 jobs:
   build:
@@ -19,29 +19,31 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python version
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
+
       - name: Install dependencies
         run: |
-          pip install --upgrade pip
-          cd endpoints
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          pip install -r endpoints/requirements.txt
+
       - name: Collect static files
         run: |
           python endpoints/manage.py collectstatic --noinput
-      - name: Zip artifact for deployment
+
+      - name: Create deployment package
         run: |
           cd endpoints
-          zip release.zip ./* -r
-      - name: Upload artifact for deployment jobs
+          zip -r ../deployment-package.zip . -x '*.git*' '*.env*' 'venv/*'
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: python-app
-          path: |
-            endpoints/release.zip
-            !venv/
+          path: deployment-package.zip
+
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -50,18 +52,16 @@ jobs:
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
 
     steps:
-      - name: Download artifact from build job
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: python-app
-
-      - name: Unzip artifact for deployment
-        run: unzip release.zip
 
       - name: "Deploy to Azure Web App"
         uses: azure/webapps-deploy@v3
         id: deploy-to-webapp
         with:
-          app-name: "aid-dermatilogy"
+          app-name: ${{ env.WEBAPP_NAME }}
           slot-name: "Production"
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          package: deployment-package.zip
