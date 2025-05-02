@@ -43,8 +43,8 @@ from azure.core.credentials import AzureKeyCredential
 llm = AzureChatOpenAI(
     openai_api_key=settings.AZURE_OPENAI_API_KEY,
     azure_endpoint=settings.AZURE_OPENAI_API_ENDPOINT,
-    api_version="2024-05-01-preview",
-    model_name="gpt-35-turbo",
+    api_version="2024-12-01-preview",
+    model_name="gpt-4o",
     temperature=0.7,
 )
 
@@ -101,6 +101,7 @@ base_dir = os.path.dirname(current_dir)
 
 # Build the absolute path to the model
 model_path = os.path.join(base_dir, "model", "Skin_Disease_Classification.keras")
+print("Model Path: ",model_path)
 
 print("Resolved model path:", model_path) 
 model = tf.keras.models.load_model(model_path)
