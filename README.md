@@ -1,6 +1,6 @@
 # 🤖 Agentic AI in Dermatological Care
 
-Our project is an Agentic AI application that leverages a Generalized Convolution Neural network(CNN)-based deep learning model to classify skin diseases and integrates Azure OpenAI GPT model with LangChain and Azure AI Search to generate intelligent, context-aware dermatological healthcare recommendations.It is Designed to empower users with early self-diagnosis of skin disorders and with options for users to connect with Dermatologist (Human in the Loop), the platform combines AI-driven accuracy with actionable insights for better health outcomes. The backend, built with Django REST Framework, ensures robust API orchestration, while the React.js frontend delivers an intuitive user experience.  The entire solution—spanning AI/ML workflows, data pipelines, and the web application—is securely deployed on Azure, ensuring end-to-end scalability and integration.
+Our project is an Agentic AI application that leverages a Generalized Convolution Neural network(CNN)-based deep learning model to classify skin diseases and integrates Azure OpenAI GPT model with LangChain and Azure AI Search to generate intelligent, context-aware dermatological healthcare recommendations.It is Designed to empower users with early self-diagnosis of skin disorders and with options for users to connect with Dermatologist (Human in the Loop), the platform combines AI-driven accuracy with actionable insights for better health outcomes. The backend, built with Django REST Framework, ensures robust API orchestration, while the React.js frontend delivers an intuitive user experience. The entire solution—spanning AI/ML workflows, data pipelines, and the web application—is securely deployed on Azure, ensuring end-to-end scalability and integration.
 
 ## 🖥️ UI/UX of the aplication
 
@@ -14,12 +14,15 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 
 [Visit the Dermatology Platform](https://purple-river-00fd8ef0f.6.azurestaticapps.net/)
 
-![.](endpoints/ai-hack-img/uix.png)
+![.](endpoints/ai-hack-img/ui2.png)
+![.](endpoints/ai-hack-img/ui3.png)
 
 ### 🔌 Unified AI Medical Assistant Endpoint (/api/medical-assistant)
 
 - The /api/medical-assistant endpoint serves as a unified interface for both image-based skin disease diagnosis and AI-powered medical conversations. When receiving an image, it processes it through a CNN model for classification and confidence scoring, while text inputs engage Azure OpenAI GPT model and LangChain—augmented by Azure AI Search—to deliver contextual, evidence-based healthcare responses. The system intelligently routes requests based on input type and maintains persistent chat history in Azure PostgreSQL, enabling seamless continuity across sessions. Designed for efficiency,the endpoint integrates with Azure API Management for scalability and security, allowing users to transition effortlessly between uploading skin condition photos and asking follow-up questions—all within a single, cohesive interaction flow.
+
 ### Key Functionalities
+
 - Skin Image Processing and disease classification
 - Context-aware chat response
 - medical information retrieval
@@ -30,9 +33,6 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 #### 🔗 endpoint link
 
 [Access the Medical Assistant Endpoint](https://aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net/api/medical-assistant/)
-
-
-![.](endpoints/ai-hack-img/endpoint.png)
 
 # Steps on How to Clone And Run the Project
 
@@ -125,8 +125,8 @@ python manage.py runserver 8000
 
 # 🧠 Retrieval-Augmented Generation
 
-**RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI GPT** with targeted data retrieval from **Azure AI Search**.
----
+## **RAG (Retrieval-Augmented Generation)** enhances the AI’s responses by grounding them in up-to-date, authoritative medical knowledge—combining the reasoning of **Azure OpenAI GPT** with targeted data retrieval from **Azure AI Search**.
+
 ### Knowledge Retrieval
 
 **Medical Corpus:**  
@@ -154,7 +154,6 @@ Need details on fine-tuning retrievers or handling ambiguous queries?
 - Django REST
 - ReactJs
 - PostgreSQL
-
 
 # 🧠 Convolution Neural Network
 
@@ -226,11 +225,8 @@ endpoint/skin_disease.ipynb
 - 📊 **Total Parameters**: 11.97m
 - ✅ **Memory footprint**: - model weight:45.67 MB - optimizer States:30.45
 
-
 - **Source:** Connected to the REST API endpoint.
 - **Destination:** Configured to route data to the `dma_lakehouse`.
 - **Transformation:** Utilized Eventstream's capabilities to filter and transform incoming data before storage in lakehouse delta tables
-
-
 
 ## Ultimately, dermatological healthcare thrives on **shared responsibility** between medical professionals and agentic AI systems—fostering collaboration, not replacement. We're not advocating for AI to `take jobs`, but to elevate care through partnership.

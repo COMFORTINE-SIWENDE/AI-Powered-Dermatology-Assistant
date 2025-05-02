@@ -24,7 +24,7 @@ export default function Header() {
               screenWidth <= 800 ? "text-[16px]" : "text-[20px]"
             }`}
           >
-            {screenWidth <= 1059 ? "AI Agents" : "AI Agents Hackathon 2025"}
+            {/* {screenWidth <= 1059 ? "AI Agents" : "AI Agents Hackathon 2025"} */}
           </span>
         </div>
 
