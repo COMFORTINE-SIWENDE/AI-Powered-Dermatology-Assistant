@@ -64,4 +64,4 @@ jobs:
         with:
           app-name: "aid-dermatilogy"
           slot-name: "Production"
-          publish-profile: ${{ secrets.AZUZE_WEBAPP_PUBLISH_PROFILE }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
