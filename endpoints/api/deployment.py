@@ -51,7 +51,7 @@ STORAGES = {
 import os
 
 # Example connection string (in production, use environment variables)
-CONNECTION_STRING = "Database=postgres;Server=aid-dermatilogy-server.postgres.database.azure.com;User Id=udbfaowfpe;Password=$nBC8ove4tPuk5Rb"
+CONNECTION_STRING = "Database=postgres;Server=dermatology-db.postgres.database.azure.com;User Id=dermatology;Password=comphortinecr7."
 
 # Parse the connection string
 connection_params = {}
