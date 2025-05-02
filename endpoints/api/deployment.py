@@ -13,8 +13,11 @@ load_dotenv()
 # original end
 
 
-WEBSITE_HOSTNAME = os.getenv("WEBSITE_HOSTNAME")
-SECRET_KEY = os.getenv("MY_SECRET_KEY") 
+# WEBSITE_HOSTNAME = os.getenv("WEBSITE_HOSTNAME")
+# SECRET_KEY = os.getenv("MY_SECRET_KEY") 
+
+WEBSITE_HOSTNAME = "aid-dermatilogy-cbfbbad0cdhscbf9.spaincentral-01.azurewebsites.net"
+SECRET_KEY = "hQ4YQD9pEcuB7e+7/a8HKWqdfXhI2tW/RCJT4PRzMCM=" 
 
 # Validate required variables
 if not WEBSITE_HOSTNAME:
