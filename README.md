@@ -4,6 +4,9 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 
 ## 🖥️ UI/UX of the aplication
 
+![.](endpoints/ai-hack-img/ui2.png)
+![.](endpoints/ai-hack-img/ui3.png)
+
 - Our intuitive React-based web application, deployed on Azure App Services, empowers users to take control of their skin health through AI-driven diagnosis. Users can simply upload or drag-and-drop images of affected skin areas, describe their symptoms, and click "Get Diagnosis" to receive instant analysis. or Connect with Doctors for further Diagnosis
 
 - The application leverages a CNN model for accurate image classification and integrates Azure OpenAI GPT model to provide conversational, evidence-based insights—enabling users to ask follow-up questions for deeper clarity. Every interaction is preserved, ensuring seamless continuity in symptom tracking and healthcare guidance.
