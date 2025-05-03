@@ -19,6 +19,8 @@ Our project is an Agentic AI application that leverages a Generalized Convolutio
 
 ### 🔌 Unified AI Medical Assistant Endpoint (/api/medical-assistant)
 
+![.](endpoints/ai-hack-img/postman.png)
+
 - The /api/medical-assistant endpoint serves as a unified interface for both image-based skin disease diagnosis and AI-powered medical conversations. When receiving an image, it processes it through a CNN model for classification and confidence scoring, while text inputs engage Azure OpenAI GPT model and LangChain—augmented by Azure AI Search—to deliver contextual, evidence-based healthcare responses. The system intelligently routes requests based on input type and maintains persistent chat history in Azure PostgreSQL, enabling seamless continuity across sessions. Designed for efficiency,the endpoint integrates with Azure API Management for scalability and security, allowing users to transition effortlessly between uploading skin condition photos and asking follow-up questions—all within a single, cohesive interaction flow.
 
 ### Key Functionalities
@@ -233,23 +235,25 @@ endpoint/skin_disease.ipynb
 
 ## 🧩 Components Overview
 
-- *Lakehouse:* dma_lakehouse For storing data from REST api in delta tables
-- *Eventstream:* For handling real-time data ingestion from the REST API.
-- *PySpark Notebook:* For Processesing and transforming data for analysis.
-- *Semantic Model:* For structuring the data for business intelligence.
-- *Power BI Dashboard:* Visualizing insights and trends.
+- _Lakehouse:_ dma_lakehouse For storing data from REST api in delta tables
+- _Eventstream:_ For handling real-time data ingestion from the REST API.
+- _PySpark Notebook:_ For Processesing and transforming data for analysis.
+- _Semantic Model:_ For structuring the data for business intelligence.
+- _Power BI Dashboard:_ Visualizing insights and trends.
 
 ## 🌐 End-to-End Real-Time Data Pipeline in Microsoft Fabric
 
 ## 1. 🛠️ REST API Integration
 
-- *Source*:Dermatology RESTful API providing JSON-formatted data related to skin disease predictions.
+- _Source_:Dermatology RESTful API providing JSON-formatted data related to skin disease predictions.
 
-- *Data*: Includes session IDs, request types, timestamps, diagnosis details, conversation history, suggested actions, and status.
+- _Data_: Includes session IDs, request types, timestamps, diagnosis details, conversation history, suggested actions, and status.
 
 ## 2. ⚡ Eventstream Setup
-  ![](endpoints/ai-hack-img/en-stream.png)
-  ![](endpoints/ai-hack-img/en-data.png)
+
+![](endpoints/ai-hack-img/en-stream.png)
+![](endpoints/ai-hack-img/en-data.png)
+
 ## 3. 🏞️ Lakehouse Storage
 
 - Purpose: Served as the centralized repository for structured and unstructured data.
@@ -286,9 +290,10 @@ Dashboard: Developed an interactive Power BI dashboard to visualize predictions 
 
 Components:
 
-- *Disease Distribution:* Donut chart showing frequency of predicted diseases.
-- *Confidence Analysis:* Funnel chart displaying prediction confidence levels.
-- *Time Series Trends:* Line graph illustrating prediction trends over time.
+- _Disease Distribution:_ Donut chart showing frequency of predicted diseases.
+- _Confidence Analysis:_ Funnel chart displaying prediction confidence levels.
+- _Time Series Trends:_ Line graph illustrating prediction trends over time.
+  ![Summary:](endpoints/ai-hack-img/bi.png)
+  Deployment: Published to Power BI Service with OneLake integration for real-time data updates.
 
-Deployment: Published to Power BI Service with OneLake integration for real-time data updates.
 ## Ultimately, dermatological healthcare thrives on **shared responsibility** between medical professionals and agentic AI systems—fostering collaboration, not replacement. We're not advocating for AI to `take jobs`, but to elevate care through partnership.
