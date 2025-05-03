@@ -229,4 +229,66 @@ endpoint/skin_disease.ipynb
 - **Destination:** Configured to route data to the `dma_lakehouse`.
 - **Transformation:** Utilized Eventstream's capabilities to filter and transform incoming data before storage in lakehouse delta tables
 
+# Data Pipeline & Analytics Workflow in Fabrics
+
+## 🧩 Components Overview
+
+- *Lakehouse:* dma_lakehouse For storing data from REST api in delta tables
+- *Eventstream:* For handling real-time data ingestion from the REST API.
+- *PySpark Notebook:* For Processesing and transforming data for analysis.
+- *Semantic Model:* For structuring the data for business intelligence.
+- *Power BI Dashboard:* Visualizing insights and trends.
+
+## 🌐 End-to-End Real-Time Data Pipeline in Microsoft Fabric
+
+## 1. 🛠️ REST API Integration
+
+- *Source*:Dermatology RESTful API providing JSON-formatted data related to skin disease predictions.
+
+- *Data*: Includes session IDs, request types, timestamps, diagnosis details, conversation history, suggested actions, and status.
+
+## 2. ⚡ Eventstream Setup
+  ![](endpoints/ai-hack-img/en-stream.png)
+  ![](endpoints/ai-hack-img/en-data.png)
+## 3. 🏞️ Lakehouse Storage
+
+- Purpose: Served as the centralized repository for structured and unstructured data.
+
+- Integration: Data from Eventstream is stored in Delta Lake format within the Lakehouse, enabling efficient querying and processing.
+  ![Summary:](endpoints/ai-hack-img/en-lkh.png)
+
+## 4. 🧪 Data Processing with PySpark
+
+Notebook: Developed a PySpark notebook to process and analyze the ingested data.
+
+Schema Definition: Defined a structured schema to parse complex JSON data accurately.
+
+Transformations:
+
+- Extracted relevant fields from nested JSON structures.
+- Converted timestamps and calculated additional metrics as needed.
+  ![](endpoints/ai-hack-img/pyspark.png)
+
+## 5. 📚 Semantic Model Creation
+
+Model: Built the dermatology semantic - Model to structure data for analysis.
+
+Features:
+
+- Organized data into meaningful entities and relationships.
+- Defined measures and calculated columns for insights.
+
+![Summary:](endpoints/ai-hack-img/en-semantic.png)
+
+## 6. 📈 PowerBI Analytics and Visualization
+
+Dashboard: Developed an interactive Power BI dashboard to visualize predictions and trends.
+
+Components:
+
+- *Disease Distribution:* Donut chart showing frequency of predicted diseases.
+- *Confidence Analysis:* Funnel chart displaying prediction confidence levels.
+- *Time Series Trends:* Line graph illustrating prediction trends over time.
+
+Deployment: Published to Power BI Service with OneLake integration for real-time data updates.
 ## Ultimately, dermatological healthcare thrives on **shared responsibility** between medical professionals and agentic AI systems—fostering collaboration, not replacement. We're not advocating for AI to `take jobs`, but to elevate care through partnership.
