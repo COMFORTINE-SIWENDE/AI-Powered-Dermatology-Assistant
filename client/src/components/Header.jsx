@@ -35,12 +35,12 @@ export default function Header() {
           >
             Doctor Dashboard
           </Link>
-          <Link
+          {/* <Link
             to="/about"
             className="p-3 text-[hsl(240,91%,70%)] font-semibold hover:underline hover:text-[blue]"
           >
             Meet our team
-          </Link>
+          </Link> */}
         </div>
       </div>
     </nav>
